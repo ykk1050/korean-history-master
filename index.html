@@ -62,6 +62,55 @@
             50% { opacity: 0.8; }
             100% { opacity: 1; }
         }
+
+        /* 모달 스타일 */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 100;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.6);
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .title-item {
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .title-item.locked {
+            color: #aaa;
+            filter: grayscale(100%);
+        }
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #333;
+            color: #fff;
+            padding: 12px 24px;
+            border-radius: 24px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            z-index: 200;
+            pointer-events: none;
+        }
     </style>
 </head>
 <body class="flex items-center justify-center min-h-screen p-2 md:p-4">
@@ -74,8 +123,9 @@
                 <span id="current-era-badge" class="text-xs font-bold px-2 py-1 rounded mb-1 w-fit bg-stone-600">시대 미정</span>
                 <span id="scene-title-header" class="font-bold text-lg md:text-xl text-stone-100">게임 시작</span>
             </div>
-            <div class="text-right">
+            <div class="text-right flex flex-col items-end">
                 <span id="game-year" class="block text-2xl font-serif text-amber-500 font-bold">START</span>
+                <button onclick="showTitles()" class="text-xs text-stone-400 hover:text-stone-200 underline mt-1">🏆 업적 보기</button>
             </div>
         </div>
 
@@ -121,7 +171,83 @@
         </div>
     </div>
 
+    <!-- 업적 모달 -->
+    <div id="title-modal" class="modal" onclick="closeTitles(event)">
+        <div class="modal-content">
+            <h2 class="text-2xl font-bold mb-4 text-stone-800 border-b pb-2">🏆 획득한 칭호</h2>
+            <div id="title-list" class="space-y-2">
+                <!-- 칭호 목록이 여기에 표시됨 -->
+            </div>
+            <button onclick="document.getElementById('title-modal').style.display='none'" class="mt-6 w-full py-2 bg-stone-600 text-white rounded hover:bg-stone-700">닫기</button>
+        </div>
+    </div>
+
+    <!-- 토스트 메시지 -->
+    <div id="toast" class="toast">칭호 획득!</div>
+
     <script>
+        // 칭호 데이터
+        const titles = {
+            'first_step': { name: '역사의 첫걸음', desc: '게임 시작하기' },
+            // 'sea_king' 제거 (장보고 삭제됨)
+            'great_scientist': { name: '과학 군주', desc: '장영실을 등용하여 조선의 과학을 꽃피우다' },
+            'reformer': { name: '개혁가', desc: '정조의 꿈을 이루다' },
+            'patriot': { name: '애국지사', desc: '국채보상운동에 참여하다' },
+            'traitor': { name: '매국노', desc: '나라를 팔아먹다 (배드엔딩)' },
+            'tyrant': { name: '폭군', desc: '백성을 억압하다 (배드엔딩)' },
+            // 'pirate_king' 제거 (장보고 삭제됨)
+            'history_guardian': { name: '역사의 수호자', desc: '광복을 맞이하다 (트루엔딩)' }
+        };
+
+        // 로컬 스토리지에서 획득한 칭호 불러오기
+        let unlockedTitles = JSON.parse(localStorage.getItem('koreanHistoryTitles')) || [];
+
+        function unlockTitle(id) {
+            if (!titles[id]) return;
+            if (!unlockedTitles.includes(id)) {
+                unlockedTitles.push(id);
+                localStorage.setItem('koreanHistoryTitles', JSON.stringify(unlockedTitles));
+                showToast(`🏆 칭호 획득: ${titles[id].name}`);
+            }
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            toast.textContent = msg;
+            toast.style.opacity = 1;
+            setTimeout(() => {
+                toast.style.opacity = 0;
+            }, 3000);
+        }
+
+        function showTitles() {
+            const list = document.getElementById('title-list');
+            list.innerHTML = '';
+            
+            Object.keys(titles).forEach(key => {
+                const item = titles[key];
+                const isUnlocked = unlockedTitles.includes(key);
+                const div = document.createElement('div');
+                div.className = `title-item ${isUnlocked ? '' : 'locked'}`;
+                div.innerHTML = `
+                    <div>
+                        <div class="font-bold">${isUnlocked ? item.name : '???'}</div>
+                        <div class="text-xs text-stone-500">${isUnlocked ? item.desc : '아직 획득하지 못함'}</div>
+                    </div>
+                    <div class="text-2xl">${isUnlocked ? '🏅' : '🔒'}</div>
+                `;
+                list.appendChild(div);
+            });
+
+            document.getElementById('title-modal').style.display = 'flex';
+        }
+
+        function closeTitles(e) {
+            if (e.target === document.getElementById('title-modal')) {
+                document.getElementById('title-modal').style.display = 'none';
+            }
+        }
+
         const gameData = {
             // ==========================================
             // 1. 고조선 및 초기 국가
@@ -131,6 +257,7 @@
                 title: "개국: 하늘의 뜻을 잇다",
                 desc: "하늘을 다스리는 환웅이 신시를 열고 인간 세상을 보살피고 있습니다. 어느 날, 곰과 호랑이가 찾아와 간절히 사람이 되기를 청합니다. 인간이 되는 길은 험난하지만, 이들을 잘 이끈다면 홍익인간의 뜻을 널리 펼칠 수 있을 것입니다.",
                 progress: 2, icon: "🐻",
+                unlock: 'first_step',
                 choices: [
                     { text: "쑥과 마늘을 주며 100일간 동굴에서 인내하라고 한다.", next: "gojoseon_law" },
                     { text: "강력한 맹수의 힘이 필요하니 군사로 키운다.", next: "crisis_beast" },
@@ -188,7 +315,8 @@
                 choices: [
                     { text: "활 쏘기와 기마술을 중시하는 상무 정신으로 '고구려'를 세운다.", next: "baekje_geunchogo" },
                     { text: "부여에 항복하고 다시 돌아가 왕자 자리를 노린다.", next: "end_buyeo_sub" },
-                    { text: "싸움이 싫으니 농사만 짓는 평화로운 소국을 세운다.", next: "crisis_weak_state" }
+                    { text: "싸움이 싫으니 농사만 짓는 평화로운 소국을 세운다.", next: "crisis_weak_state" },
+                    { text: "신라의 박혁거세, 백제의 온조와 함께 알에서 태어난 신성함을 강조한다.", next: "baekje_geunchogo" }
                 ]
             },
             crisis_weak_state: {
@@ -196,8 +324,8 @@
                 desc: "무력을 포기하고 평화만 외치자, 주변의 한나라 군현과 선비족이 우리를 만만하게 보고 매일같이 약탈해 갑니다. 백성들은 집과 가족을 잃고 울부짖고 있습니다.",
                 choices: [
                     { text: "빼앗긴 것을 되찾기 위해 군사를 기르고 국방을 강화한다.", next: "baekje_geunchogo" }, // 회복
-                    { text: "그들에게 조공을 바치고 제발 봐달라고 빈다.", next: "end_buyeo_sub" },
-                    { text: "나라를 버리고 더 깊은 산속으로 숨는다.", next: "end_myth_fail" }
+                    { text: "그들에게 조공을 바치고 제발 봐달라고 빈다.", next: "end_vassal_generic" },
+                    { text: "나라를 버리고 더 깊은 산속으로 숨는다.", next: "end_fail_founding" }
                 ]
             },
             
@@ -218,7 +346,7 @@
                 choices: [
                     { text: "다시 바닷길을 열고 활발한 정복 활동을 시작하여 귀족들의 불만을 잠재운다.", next: "goguryeo_gwanggaeto" }, // 회복
                     { text: "반대하는 귀족들을 모두 죽여 공포 정치를 한다.", next: "end_tyrant" },
-                    { text: "강력한 고구려에 도움을 요청하고 땅을 떼어준다.", next: "end_buyeo_sub" }
+                    { text: "강력한 고구려에 도움을 요청하고 땅을 떼어준다.", next: "end_vassal_goguryeo" }
                 ]
             },
             crisis_early_war: {
@@ -227,17 +355,17 @@
                 choices: [
                     { text: "군대를 급히 돌려 고구려군을 막아내고 전선을 재정비한다.", next: "goguryeo_gwanggaeto" }, // 회복
                     { text: "신라 공격에 모든 것을 건다. 뒤는 생각하지 않는다.", next: "end_savage" },
-                    { text: "배를 타고 일본으로 도망친다.", next: "end_myth_fail" }
+                    { text: "배를 타고 일본으로 도망친다.", next: "end_exile_ancient" }
                 ]
             },
-
+            
             goguryeo_gwanggaeto: {
                 type: 'history', badge: 'badge-goguryeo', era: "고구려", year: "391년~",
                 title: "광개토대왕의 웅비",
                 desc: "고구려의 광개토대왕은 '영락'이라는 독자적인 연호를 사용하며 대제국을 건설하고자 합니다. 사방에 적들이 있지만, 우리 기병의 말발굽 소리는 대지를 울립니다. 어디를 먼저 공략하시겠습니까?",
                 progress: 15, icon: "🐎",
                 choices: [
-                    { text: "북으로 만주를 호령하고, 남으로 내려가 신라를 괴롭히는 왜구를 격퇴한다.", next: "goguryeo_salsu" },
+                    { text: "북으로 만주를 호령하고, 남으로 내려가 신라를 괴롭히는 왜구를 격퇴한다.", next: "shilla_growth" },
                     { text: "백제와 손잡고 신라를 협공하여 한반도 남부를 나눠 가진다.", next: "crisis_shilla_fall" },
                     { text: "중국 본토 깊숙이 쳐들어가 중원의 황제가 되려 한다.", next: "crisis_over_extension" }
                 ]
@@ -246,8 +374,8 @@
                 type: 'crisis', badge: 'badge-crisis', title: "위기: 깨진 균형",
                 desc: "신라를 멸망시켰지만, 백제가 약속을 어기고 신라 땅을 독차지한 뒤 고구려의 배후를 위협합니다. 믿었던 도끼에 발등 찍힌 꼴이 되었습니다.",
                 choices: [
-                    { text: "배신자 백제를 응징하고 한강 이북의 패권을 확고히 한다.", next: "goguryeo_salsu" }, // 회복
-                    { text: "백제의 세력이 너무 커졌다. 항복한다.", next: "end_buyeo_sub" },
+                    { text: "배신자 백제를 응징하고 한강 이북의 패권을 확고히 한다.", next: "shilla_growth" }, // 회복
+                    { text: "백제의 세력이 너무 커졌다. 항복한다.", next: "end_vassal_baekje" },
                     { text: "남쪽 땅을 모두 포기하고 만주로만 나아간다.", next: "crisis_weak_state" }
                 ]
             },
@@ -255,9 +383,30 @@
                 type: 'crisis', badge: 'badge-crisis', title: "위기: 보급로 차단",
                 desc: "너무 깊이 들어갔습니다. 보급로가 끊기고 병사들은 지쳐 쓰러집니다. 중국의 대군이 포위망을 좁혀오고 있습니다. 고구려 본토가 위험합니다.",
                 choices: [
-                    { text: "욕심을 버리고 신속히 철군하여 요동 방어선을 굳건히 한다.", next: "goguryeo_salsu" }, // 회복
-                    { text: "죽을 때까지 앞으로만 돌격한다.", next: "end_bad_tactic" },
-                    { text: "적장에게 항복하고 그의 부하가 된다.", next: "end_sui_colony" }
+                    { text: "욕심을 버리고 신속히 철군하여 요동 방어선을 굳건히 한다.", next: "shilla_growth" }, // 회복
+                    { text: "목숨을 걸고 앞으로 돌격한다.", next: "end_bad_tactic" },
+                    { text: "적장에게 항복하고 그의 부하가 된다.", next: "end_vassal_generic" }
+                ]
+            },
+
+            shilla_growth: {
+                type: 'history', badge: 'badge-ancient', era: "신라", year: "6세기",
+                title: "신라의 도약과 진흥왕",
+                desc: "신라는 삼국 중 가장 늦게 발전했지만, 법흥왕이 불교를 공인하고 진흥왕이 화랑도를 정비하며 전성기를 맞이했습니다. 진흥왕은 한강 유역을 차지하고 북한산에 순수비를 세웠습니다.",
+                progress: 17, icon: "👑",
+                choices: [
+                    { text: "화랑도를 국가적 조직으로 키우고, 중국과 직접 교류하여 삼국 통일의 기반을 닦는다.", next: "goguryeo_salsu" },
+                    { text: "백제와의 동맹을 끝까지 믿고 한강을 포기한다.", next: "crisis_stagnant_shilla" },
+                    { text: "고구려의 힘이 강력하니 조공을 바치며 나중에 역전을 노린다.", next: "end_weakness" }
+                ]
+            },
+            crisis_stagnant_shilla: {
+                type: 'crisis', badge: 'badge-crisis', title: "위기: 갇혀버린 신라",
+                desc: "한강을 차지하지 못한 신라는 중국으로 가는 뱃길이 막혔습니다. 백제는 더욱 강성해져 신라를 위협하고, 신라는 영원히 변방의 작은 나라로 남을 위기입니다.",
+                choices: [
+                    { text: "늦게나마 동맹을 깨고 한강 유역을 공격한다.", next: "goguryeo_salsu" }, // 회복
+                    { text: "백제에 머리를 숙이고 나중에 역전을 노린다.", next: "end_vassal_baekje" },
+                    { text: "산속으로 들어가 숨는다.", next: "end_coward" }
                 ]
             },
 
@@ -292,8 +441,8 @@
                 progress: 22, icon: "👑",
                 choices: [
                     { text: "외세의 지배를 받을 순 없다. 당나라와 전쟁을 벌여 그들을 몰아낸다.", next: "balhae_founding" },
-                    { text: "대국인 당나라와 싸워 이길 수 없다. 지배를 인정하고 자치권만 얻는다.", next: "end_tang_vassal" },
-                    { text: "고구려 유민들이 당나라와 손잡을지 모른다. 그들을 먼저 공격한다.", next: "crisis_internal_war" }
+                    { text: "대국인 당나라와 싸워 이길 수 없다. 지배를 인정하고 스스로 나라를 다스릴 권리만 얻는다.", next: "end_tang_vassal" },
+                    { text: "고구려 유민들이 우리에게 복수하기 위해 당나라와 손잡을지 모른다. 아직 군대를 만들지 못한 그들을 먼저 공격한다.", next: "crisis_internal_war" }
                 ]
             },
             crisis_internal_war: {
@@ -301,7 +450,7 @@
                 desc: "같은 민족인 고구려 유민을 적으로 돌리자, 그들은 살기 위해 당나라와 손잡고 신라를 공격해옵니다. 당나라를 몰아내기도 벅찬데 내부의 적까지 생겼습니다.",
                 choices: [
                     { text: "유민들을 포용하고 힘을 합쳐 당나라를 몰아내자고 설득한다.", next: "balhae_founding" }, // 회복
-                    { text: "끝까지 동족상잔의 비극을 벌인다.", next: "end_savage" },
+                    { text: "끝까지 동족끼리 싸우는 비극을 벌인다.", next: "end_savage" },
                     { text: "당나라에 뇌물을 주고 평화를 산다.", next: "end_tang_vassal" }
                 ]
             },
@@ -312,18 +461,39 @@
                 desc: "고구려가 멸망한 지 30년, 고구려 유민 대조영은 당나라의 추격을 따돌리고 동모산에 터를 잡았습니다. 이제 새로운 나라를 선포하려 합니다. 우리는 누구의 역사를 잇는 나라입니까?",
                 progress: 25, icon: "🏰",
                 choices: [
-                    { text: "나라 이름을 '발해'라 하고, 당당히 고구려 계승을 천명한다.", next: "goryeo_wanggeon" },
+                    { text: "나라 이름을 '발해'라 하고, 당당히 고구려 계승을 천명한다.", next: "later_three_kingdoms" },
                     { text: "말갈족이 많으니 말갈의 나라임을 선포하고 고구려와 선을 긋는다.", next: "crisis_identity" },
-                    { text: "당나라에 투항하여 장군으로 편하게 여생을 보낸다.", next: "end_no_balhae" }
+                    { text: "당나라에 항복하여 장군으로 편하게 여생을 보낸다.", next: "end_no_balhae" }
                 ]
             },
             crisis_identity: {
                 type: 'crisis', badge: 'badge-crisis', title: "위기: 쪼개진 마음",
                 desc: "고구려 유민들이 '우리의 나라가 아니다'라며 반발하여 떠나려 합니다. 나라가 세워지기도 전에 둘로 쪼개질 위기입니다. 국력이 모이지 않습니다.",
                 choices: [
-                    { text: "고구려와 말갈을 아우르는 융합 정책을 펴서 모두를 포용한다.", next: "goryeo_wanggeon" }, // 회복
+                    { text: "고구려와 말갈을 아우르는 융합 정책을 펴서 모두를 포용한다.", next: "later_three_kingdoms" }, // 회복
                     { text: "반발하는 고구려 유민을 모두 추방한다.", next: "end_weakness" },
                     { text: "나라를 해체하고 각자 부족 단위로 돌아간다.", next: "end_no_balhae" }
+                ]
+            },
+
+            later_three_kingdoms: {
+                type: 'history', badge: 'badge-ancient', era: "후삼국", year: "900년경",
+                title: "후삼국의 혼란",
+                desc: "신라의 국운이 기울자, 견훤은 후백제를, 궁예는 후고구려를 세워 천하는 다시 셋으로 나뉘었습니다. 영웅들이 패권을 다투는 혼란의 시기, 백성들은 평화로운 세상을 갈망합니다.",
+                progress: 28, icon: "⚔️",
+                choices: [
+                    { text: "폭정을 일삼는 궁예를 몰아내고, 덕망 높은 왕건을 새 왕으로 추대한다.", next: "goryeo_wanggeon" },
+                    { text: "견훤과 손잡고 신라를 멸망시킨다.", next: "crisis_ally_gyeonhwon" },
+                    { text: "신라의 마지막 충신으로 남아 끝까지 저항한다.", next: "end_weakness" }
+                ]
+            },
+            crisis_ally_gyeonhwon: {
+                type: 'crisis', badge: 'badge-crisis', title: "위기: 잔혹한 점령군",
+                desc: "견훤과 손잡고 신라의 수도 금성(지금의 경주)을 함락시켰으나, 견훤은 약속을 어기고 왕을 살해하며 백성들을 잔혹하게 유린했습니다. 신라의 민심은 당신을 침략자로 여기며 등을 돌렸고, 견훤은 이제 당신까지 위협합니다.",
+                choices: [
+                    { text: "견훤의 만행을 규탄하고, 신라의 유민들을 보호하며 민심을 되돌린다.", next: "goryeo_wanggeon" }, // 회복
+                    { text: "견훤의 힘이 강하니 그의 신하가 되어 민족의 힘을 기르는데 나의 능력을 바친다.", next: "end_traitor" },
+                    { text: "모든 것을 버리고 산속으로 도망친다.", next: "end_coward" }
                 ]
             },
 
@@ -336,16 +506,16 @@
                 desc: "후삼국의 혼란을 잠재우고 왕건이 고려를 세웠습니다. 하지만 지방에는 여전히 강력한 사병을 거느린 호족들이 버티고 있습니다. 이들을 어떻게 다스려야 진정한 통일을 이룰 수 있을까요?",
                 progress: 30, icon: "💍",
                 choices: [
-                    { text: "정략 결혼으로 호족들을 가족으로 만들고, 북진 정책으로 비전을 제시한다.", next: "goryeo_gwangjong" },
+                    { text: "정략 결혼으로 호족들을 가족으로 만들고, 북진 정책으로 비전을 제시한다.", next: "goryeo_seohee" },
                     { text: "호족들을 모두 반역자로 몰아 처형하여 강력한 왕권을 세운다.", next: "crisis_rebellion" },
-                    { text: "신라의 골품제를 그대로 답습하여 귀족 중심 사회를 만든다.", next: "crisis_stagnation" }
+                    { text: "신라의 골품제를 그대로 받아들여 귀족 중심 사회를 만든다.", next: "crisis_stagnation" }
                 ]
             },
             crisis_rebellion: {
                 type: 'crisis', badge: 'badge-crisis', title: "위기: 호족들의 반란",
                 desc: "무리한 숙청에 위기감을 느낀 호족들이 연합하여 반란을 일으켰습니다. 갓 세운 왕조가 무너질 위기입니다.",
                 choices: [
-                    { text: "유화책(사심관, 기인 제도)을 통해 그들에게 책임을 주고 달랜다.", next: "goryeo_gwangjong" }, // 회복
+                    { text: "유화책(사심관, 기인 제도)을 통해 그들에게 책임을 주고 달랜다.", next: "goryeo_seohee" }, // 회복
                     { text: "반란군과 끝까지 싸우다 장렬히 전사한다.", next: "end_bad_tactic" },
                     { text: "왕위를 버리고 절로 들어간다.", next: "end_weakness" }
                 ]
@@ -354,30 +524,9 @@
                 type: 'crisis', badge: 'badge-crisis', title: "위기: 고인 물",
                 desc: "신분제를 그대로 유지하자 능력 있는 인재들이 등용되지 못하고 불만이 쌓입니다. 새 나라를 세운 의미가 퇴색되었습니다.",
                 choices: [
-                    { text: "과거제를 도입하여 신분에 상관없이 능력 있는 인재를 뽑는다.", next: "goryeo_gwangjong" }, // 회복 (사실 광종 업적이지만 흐름상 연결)
+                    { text: "과거제를 도입하여 신분에 상관없이 능력 있는 인재를 뽑는다.", next: "goryeo_seohee" }, // 회복 (광종 생략 후 서희로 연결)
                     { text: "불만을 가진 자들을 무력으로 탄압한다.", next: "end_tyrant" },
                     { text: "나라를 다시 3개로 쪼갠다.", next: "end_savage" }
-                ]
-            },
-
-            goryeo_gwangjong: {
-                type: 'history', badge: 'badge-goryeo', era: "고려", year: "956년",
-                title: "광종의 과감한 개혁",
-                desc: "호족들이 불법으로 거느린 노비가 너무 많아 세금이 걷히지 않고 왕권은 약합니다. 왕은 호족들의 눈치를 보지 않고 칼을 빼들어야 합니다.",
-                progress: 33, icon: "📜",
-                choices: [
-                    { text: "노비안검법을 실시해 억울한 노비를 양인으로 해방시킨다.", next: "goryeo_seohee" },
-                    { text: "호족들의 눈치를 보며 현상 유지를 한다.", next: "crisis_weak_king" },
-                    { text: "모든 백성을 왕의 노비로 만들어 국유화한다.", next: "end_tyrant" }
-                ]
-            },
-            crisis_weak_king: {
-                type: 'crisis', badge: 'badge-crisis', title: "위기: 허수아비 왕",
-                desc: "호족들의 권세가 왕권을 능가했습니다. 왕은 그저 호족들이 결정한 문서에 도장만 찍는 신세가 되었습니다.",
-                choices: [
-                    { text: "중국인 쌍기를 등용하여 과거제를 실시하고 새로운 인재로 왕권을 강화한다.", next: "goryeo_seohee" }, // 회복
-                    { text: "호족들에게 왕위를 물려주고 물러난다.", next: "end_weakness" },
-                    { text: "술과 향락에 빠져 정사를 돌보지 않는다.", next: "end_coward" }
                 ]
             },
 
@@ -389,7 +538,7 @@
                 choices: [
                     { text: "거란이 송나라와의 관계를 끊길 원함을 간파하고, 담판을 통해 강동 6주를 얻어낸다.", next: "goryeo_ganggamchan" },
                     { text: "싸울 힘이 없다. 요구대로 서경 이북의 땅을 떼어주고 화친한다.", next: "crisis_land_loss" },
-                    { text: "무조건 항복하여 목숨만 부지한다.", next: "end_colony_khitan" }
+                    { text: "무조건 항복하여 목숨이라도 부지한다.", next: "end_colony_khitan" }
                 ]
             },
             crisis_land_loss: {
@@ -397,8 +546,8 @@
                 desc: "땅을 떼어주자 거란은 고려를 겁쟁이라 여겨 더 많은 땅과 공물을 요구해옵니다. 한 번의 양보가 호랑이를 불러들였습니다.",
                 choices: [
                     { text: "지금이라도 강경하게 맞서 싸우고 외교적 실리를 찾는다.", next: "goryeo_ganggamchan" }, // 회복
-                    { text: "계속 땅을 떼어주다 나라가 없어진다.", next: "end_colony_khitan" },
-                    { text: "송나라로 도망친다.", next: "end_coward" }
+                    { text: "한 번에 나라가 멸망하는 일이 없도록 조금씩 땅을 더 떼어준다.", next: "end_colony_khitan" },
+                    { text: "송나라(고려시대 중국에 있던 국가)로 도망친다.", next: "end_coward" }
                 ]
             },
 
@@ -408,8 +557,8 @@
                 desc: "거란이 약속을 어기고 3차 침입을 감행했습니다. 소배압의 10만 정예군이 개경을 노리고 달려옵니다. 강감찬 장군은 귀주 벌판에서 적을 맞이할 준비를 마쳤습니다.",
                 progress: 40, icon: "⚔️",
                 choices: [
-                    { text: "강물을 막아 적을 혼란시킨 뒤, 매복한 군사로 궤멸시킨다.", next: "goryeo_musin" },
-                    { text: "적을 곱게 보내주어 평화를 얻으려 한다.", next: "crisis_khitan_return" },
+                    { text: "강물을 막아 적을 혼란시킨 뒤, 매복한 군사로 궤멸시킨다.", next: "goryeo_yoongwan" },
+                    { text: "공격하지 않고 가만히 두면 돌아갈 적이니 곱게 보내주어 평화를 얻는 길을 택한다.", next: "crisis_khitan_return" },
                     { text: "수도를 버리고 남쪽으로 도망간다.", next: "crisis_capital_lost" }
                 ]
             },
@@ -417,39 +566,39 @@
                 type: 'crisis', badge: 'badge-crisis', title: "위기: 거란의 재침입",
                 desc: "적을 살려 보내자 그들은 정비 후 다시 쳐들어와 국토를 유린합니다. 자비가 화를 불렀습니다.",
                 choices: [
-                    { text: "나성을 쌓고 천리장성을 축조하여 철통 방어 태세를 갖춘다.", next: "goryeo_musin" }, // 회복
+                    { text: "나성을 쌓고 천리장성을 축조하여 철통 방어 태세를 갖춘다.", next: "goryeo_yoongwan" }, // 회복
                     { text: "항복한다.", next: "end_colony_khitan" },
-                    { text: "적군과 연합한다.", next: "end_traitor" }
+                    { text: "적군을 잘 달래 연합한다.", next: "end_traitor" }
                 ]
             },
             crisis_capital_lost: {
                 type: 'crisis', badge: 'badge-crisis', title: "위기: 불타는 개경",
                 desc: "수도를 버리자 백성들의 신망을 잃었고, 거란군은 텅 빈 개경을 불태웠습니다. 왕의 권위가 바닥에 떨어졌습니다.",
                 choices: [
-                    { text: "각지에서 의병을 모아 적의 보급로를 끊고 끈질기게 반격한다.", next: "goryeo_musin" }, // 회복
+                    { text: "각지에서 의병을 모아 적의 보급로를 끊고 끈질기게 반격한다.", next: "goryeo_yoongwan" }, // 회복
                     { text: "섬으로 숨어 평생 나오지 않는다.", next: "end_coward" },
                     { text: "거란의 신하가 되겠다고 맹세한다.", next: "end_colony_khitan" }
                 ]
             },
 
-            goryeo_musin: {
-                type: 'history', badge: 'badge-goryeo', era: "고려", year: "1170년",
-                title: "무신 정변",
-                desc: "문신들은 연회를 즐기면서 무신들을 하인처럼 부리고 무시했습니다. 참다못한 무신들의 불만이 폭발하여 칼을 뽑았습니다. 세상이 뒤집혔습니다.",
-                progress: 43, icon: "🗡️",
+            goryeo_yoongwan: {
+                type: 'history', badge: 'badge-goryeo', era: "고려", year: "1107년",
+                title: "윤관과 별무반",
+                desc: "북방의 여진족이 성장하여 고려의 국경을 위협하고 있습니다. 기병 위주의 여진족을 상대하기 위해 윤관 장군은 보병 중심의 고려군을 개편해야 한다고 주장합니다.",
+                progress: 43, icon: "🛡️",
                 choices: [
-                    { text: "혼란스럽지만, 다가올 몽골의 침입에 대비해 국방력을 강화하는 계기로 삼는다.", next: "goryeo_sambyeolcho" },
-                    { text: "왕을 폐위시키고 무신이 직접 왕이 되려 한다.", next: "crisis_dynasty_change_fail" },
-                    { text: "문신들을 모두 죽이고 글을 모르는 세상을 만든다.", next: "end_barbaric" }
+                    { text: "신기군(기병), 신보군(보병), 항마군(승병)으로 구성된 특수 부대 '별무반'을 조직하여 여진을 정벌하고 9성을 쌓는다.", next: "goryeo_sambyeolcho" },
+                    { text: "평화가 최우선이다. 여진족에게 곡식을 바치고 달랜다.", next: "end_vassal_jurchen" },
+                    { text: "공격할 능력이 부족하니 방어만 한다.", next: "crisis_jurchen_plunder" }
                 ]
             },
-            crisis_dynasty_change_fail: {
-                type: 'crisis', badge: 'badge-crisis', title: "위기: 정통성 부재",
-                desc: "무신이 왕이 되려 했으나 명분이 없어 각지에서 반란이 일어납니다. 나라가 쪼개지고 내전 상태가 되었습니다.",
+            crisis_jurchen_plunder: {
+                type: 'crisis', badge: 'badge-crisis', title: "위기: 여진의 유린",
+                desc: "방어만 하는 소극적인 태도를 보이자 여진족은 고려를 얕잡아보고 국경을 넘어와 마을을 불태우고 약탈합니다. 백성들의 원성이 하늘을 찌릅니다.",
                 choices: [
-                    { text: "왕정 복고를 선언하고 최씨 무신 정권(교정도감)을 세워 질서를 잡는다.", next: "goryeo_sambyeolcho" }, // 회복
-                    { text: "힘으로 모든 반란을 제압하고 공포 정치를 한다.", next: "end_tyrant" },
-                    { text: "서로 죽고 죽이는 내전을 방치한다.", next: "end_savage" }
+                    { text: "지금이라도 별무반을 조직하여 강력한 토벌에 나선다.", next: "goryeo_sambyeolcho" }, // 회복
+                    { text: "여진족에게 땅을 떼어주고 평화를 요구한다.", next: "end_vassal_jurchen" },
+                    { text: "도망친다.", next: "end_coward" }
                 ]
             },
 
@@ -469,7 +618,7 @@
                 desc: "모두가 몽골식 머리를 하고 몽골 옷을 입으며 고려의 고유한 문화가 사라질 위기입니다. 나라는 남았으나 정신은 식민지가 되었습니다.",
                 choices: [
                     { text: "자주성을 되찾기 위한 움직임(삼별초 등)을 지원하고 전통을 지킨다.", next: "goryeo_gongmin" }, // 회복
-                    { text: "완전히 몽골인이 된다.", next: "end_culture_lost" },
+                    { text: "몽골은 강한나라이니 부끄러울 것 없다. 완전히 몽골인이 된다.", next: "end_culture_lost" },
                     { text: "원나라 황제의 눈에 들어 출세하는 데만 신경 쓴다.", next: "end_traitor" }
                 ]
             },
@@ -486,42 +635,21 @@
             goryeo_gongmin: {
                 type: 'history', badge: 'badge-goryeo', era: "고려 말", year: "1351년",
                 title: "공민왕의 자주 개혁",
-                desc: "원나라(몽골)의 세력이 약해진 틈을 타 공민왕은 고려의 자주성을 되찾으려 합니다. 친원파 권문세족들이 반발하고 있습니다.",
+                desc: "원나라(몽골)의 세력이 약해진 틈을 타 공민왕은 고려의 자주성을 되찾으려 합니다. 친원파(원나라랑 친하게 지내고자 하는 신하들) 권문세족들이 반발하고 있습니다.",
                 progress: 50, icon: "👑",
                 choices: [
-                    { text: "친원 세력(기철 등)을 숙청하고, 빼앗긴 영토(쌍성총관부)를 되찾는다.", next: "goryeo_choemuseon" },
+                    { text: "친원 세력(원나라랑 친하게 지내자고 주장하는 세력)을 숙청하고, 빼앗긴 영토를 되찾는다.", next: "joseon_wihwado" },
                     { text: "아직 원나라가 무섭다. 의리를 지키며 계속 공녀를 바친다.", next: "end_yuan_province" },
                     { text: "승려 신돈에게 모든 권력을 주고 자신은 뒤로 물러난다.", next: "crisis_monk_power" }
                 ]
             },
             crisis_monk_power: {
                 type: 'crisis', badge: 'badge-crisis', title: "위기: 요승의 전횡",
-                desc: "신돈이 초기에는 개혁을 잘하는가 싶더니, 점점 권력을 남용하여 조정이 혼란에 빠졌습니다. 보수 세력의 반발이 극심합니다.",
+                desc: "신돈이 초기에는 개혁을 잘하는가 싶더니, 점점 권력을 함부로 사용하여 조정이 혼란에 빠졌습니다. 보수 세력의 반발이 극심합니다.",
                 choices: [
-                    { text: "신돈을 제거하고 왕이 직접 개혁을 주도한다.", next: "goryeo_choemuseon" }, // 회복
+                    { text: "신돈을 제거하고 왕이 직접 개혁을 주도한다.", next: "joseon_wihwado" }, // 회복
                     { text: "개혁을 모두 취소하고 다시 원나라에 기댄다.", next: "end_yuan_province" },
                     { text: "정치를 포기하고 그림(천산대렵도)만 그린다.", next: "end_weakness" }
-                ]
-            },
-
-            goryeo_choemuseon: {
-                type: 'history', badge: 'badge-goryeo', era: "고려 말", year: "1377년",
-                title: "화통도감과 진포 해전",
-                desc: "남쪽 해안가에는 왜구들이 떼를 지어 나타나 백성들을 학살하고 약탈합니다. 최무선은 화약만이 왜구를 물리칠 방법이라 믿고 연구에 매진했습니다.",
-                progress: 52, icon: "💣",
-                choices: [
-                    { text: "화통도감을 설치해 화포를 만들고, 진포 해전에서 왜구를 격파한다.", next: "joseon_wihwado" },
-                    { text: "화약은 위험하니 제조를 금지하고 활로만 싸운다.", next: "crisis_pirates" },
-                    { text: "왜구에게 뇌물을 주고 평화를 산다.", next: "end_weakness" }
-                ]
-            },
-            crisis_pirates: {
-                type: 'crisis', badge: 'badge-crisis', title: "위기: 왜구의 난동",
-                desc: "재래식 무기로는 떼거지로 덤비는 왜구를 막을 수 없어 해안가 마을이 초토화되었습니다. 세금이 걷히지 않아 나라가 망하기 직전입니다.",
-                choices: [
-                    { text: "뒤늦게라도 화통도감을 설치하여 화무기를 개발한다.", next: "joseon_wihwado" }, // 회복
-                    { text: "해안가를 비우고 내륙으로 도망간다.", next: "end_coward" },
-                    { text: "왜구와 협상하여 땅을 떼어준다.", next: "end_traitor" }
                 ]
             },
 
@@ -534,39 +662,31 @@
                 desc: "명나라가 요동 정벌을 요구하자 최영 장군은 이성계를 보냈습니다. 하지만 장마철이라 활의 아교가 녹고 병사들이 지쳤습니다. 압록강 위화도에서 이성계는 운명적인 결정을 내려야 합니다.",
                 progress: 55, icon: "🐴",
                 choices: [
-                    { text: "4가지 불가론을 내세워 군대를 돌려(회군) 정권을 잡는다.", next: "joseon_taejong" },
-                    { text: "왕명에 따라 무리해서라도 요동을 공격하고 명나라와 전면전을 벌인다.", next: "end_ming_war" },
-                    { text: "군대를 해산하고 낙향하여 조용히 농사를 짓는다.", next: "end_farmer" }
+                    { text: "4가지 불가론을 내세워 군대를 돌려(회군) 정권을 잡는다.", next: "joseon_sejong_science" },
+                    { text: "왕명에 따라야 하므로 군사들을 잘 달래 요동을 공격하고 명나라와 전면전을 벌인다.", next: "end_ming_war" },
+                    { text: "군대를 해산하고 고향으로 돌아가 조용히 농사를 짓는다.", next: "end_farmer" }
                 ]
             },
 
-            joseon_taejong: {
-                type: 'history', badge: 'badge-joseon', era: "조선 초기", year: "1400년",
-                title: "태종의 왕권 강화",
-                desc: "새 나라 조선이 건국되었으나 왕권은 불안정합니다. 개국 공신들은 사병(개인 군대)을 거느리고 권력을 휘두르고 있습니다. 나라의 기틀을 다지기 위해 태종 이방원은 칼을 들었습니다.",
-                progress: 58, icon: "🤴",
+            // [추가] 세종대왕 과학 기술 (장영실)
+            joseon_sejong_science: {
+                type: 'history', badge: 'badge-joseon', era: "조선 초기", year: "1434년",
+                title: "세종대왕과 과학 기술",
+                desc: "세종대왕은 백성들의 삶을 윤택하게 하기 위해 과학 기술에도 큰 관심을 기울입니다. 노비 출신인 장영실의 뛰어난 재주를 알아본 왕은 신하들의 반대를 무릅쓰고 그를 등용하려 합니다.",
+                progress: 58, icon: "🔭",
                 choices: [
-                    { text: "사병을 혁파하여 군사권을 왕에게 집중시키고, 호패법을 실시한다.", next: "joseon_sejong" },
-                    { text: "공신들에게 더 많은 권한을 주고 왕은 허수아비가 된다.", next: "crisis_noble_power" },
-                    { text: "불교를 숭상하여 절을 더 많이 짓는다.", next: "crisis_buddhism" }
+                    { text: "신분보다 능력이 우선이다. 장영실을 등용하여 자격루, 측우기 등을 만들게 한다.", next: "joseon_sejong", unlock: 'great_scientist' },
+                    { text: "법도는 지켜져야 한다. 천민을 관직에 앉힐 수 없다.", next: "crisis_no_science" },
+                    { text: "직접 과학 기술을 개발하기는 어려우니 명나라의 과학 기술을 잘 받아들이기로 한다.", next: "end_culture_lost" }
                 ]
             },
-            crisis_noble_power: {
-                type: 'crisis', badge: 'badge-crisis', title: "위기: 신권의 비대화",
-                desc: "신하들이 왕을 무시하고 국정을 좌지우지합니다. 왕명은 궁궐 담장을 넘지 못하고, 백성들은 누구를 따라야 할지 몰라 혼란스러워합니다.",
+            crisis_no_science: {
+                type: 'crisis', badge: 'badge-crisis', title: "위기: 정체된 기술",
+                desc: "과학 기술 발전이 더뎌져 농업 생산량이 늘지 않고, 가뭄과 홍수에 대비하지 못해 백성들이 고통받습니다.",
                 choices: [
-                    { text: "강력한 리더십으로 사병을 타파하고 왕권을 되찾는다.", next: "joseon_sejong" }, // 회복
-                    { text: "왕위를 내놓고 상왕으로 물러난다.", next: "end_weakness" },
-                    { text: "신하들과 결탁하여 백성을 수탈한다.", next: "end_tyrant" }
-                ]
-            },
-            crisis_buddhism: {
-                type: 'crisis', badge: 'badge-crisis', title: "위기: 유교 국가의 정체성",
-                desc: "성리학을 이념으로 세운 조선에서 불교를 장려하자 유생들의 반발이 극심합니다. 이념적 혼란이 사회를 뒤흔들고 있습니다.",
-                choices: [
-                    { text: "사원의 토지를 몰수하고 억불숭유 정책을 확립한다.", next: "joseon_sejong" }, // 회복
-                    { text: "고려 시대로 돌아가겠다고 선포한다.", next: "end_culture_lost" },
-                    { text: "반대하는 승려들을 탄압하여 죽인다.", next: "end_tyrant" }
+                    { text: "지금이라도 인재를 널리 찾아 과학 기구를 개발한다.", next: "joseon_sejong" }, // 회복
+                    { text: "하늘의 뜻이라 여기고 상황을 나아지게 하기 위해 비를 내리게 해달라고 요구하는 제사인 기우제를 지낸다.", next: "end_weakness" },
+                    { text: "과학 기술 발전이 시급하니 더 세금을 걷는다.", next: "end_tyrant" }
                 ]
             },
 
@@ -576,7 +696,7 @@
                 desc: "조선의 황금기입니다. 하지만 백성들은 어려운 한자를 몰라 억울한 일을 당해도 호소하지 못합니다. 세종은 누구나 쉽게 배우는 글자를 만들고 싶지만, 최만리 등 신하들은 중국을 거스르는 일이라며 반대합니다.",
                 progress: 60, icon: "📖",
                 choices: [
-                    { text: "백성을 가르치는 바른 소리, '훈민정음'을 창제하고 반포한다.", next: "joseon_sejo" },
+                    { text: "백성을 가르치는 바른 소리, '훈민정음'을 창제하고 반포한다.", next: "joseon_imjin" },
                     { text: "중국을 섬기는 사대주의에 입각해 한글 창제를 포기한다.", next: "crisis_no_hangul" },
                     { text: "한자를 더 어렵게 만들어 양반들만의 지식을 강화한다.", next: "end_elite_society" }
                 ]
@@ -585,39 +705,9 @@
                 type: 'crisis', badge: 'badge-crisis', title: "위기: 까막눈 백성",
                 desc: "쉬운 글자가 없어 백성들은 전염병 예방법도, 농사법도 읽지 못해 죽어갑니다. 지식은 양반들의 전유물이 되어 사회 발전이 정체되었습니다.",
                 choices: [
-                    { text: "지금이라도 '언문'이라 칭하며 한글을 보급한다.", next: "joseon_sejo" }, // 회복
-                    { text: "백성이 똑똑해지면 다루기 힘들다고 방치한다.", next: "end_elite_society" },
+                    { text: "지금이라도 한글을 만들고 보급한다.", next: "joseon_imjin" }, // 회복
+                    { text: "백성이 똑똑해지면 다루기 힘들다. 더 쉽게 나라를 다스리기 위해 그대로 둔다", next: "end_elite_society" },
                     { text: "중국어를 공용어로 지정한다.", next: "end_culture_lost" }
-                ]
-            },
-
-            joseon_sejo: {
-                type: 'history', badge: 'badge-joseon', era: "조선 초기", year: "1455년",
-                title: "계유정난",
-                desc: "문종이 일찍 죽고 어린 단종이 즉위하자, 숙부인 수양대군은 야망을 드러냅니다. 김종서 등 고명대신을 제거하고 조카의 왕위를 빼앗으려 합니다.",
-                progress: 62, icon: "🩸",
-                choices: [
-                    { text: "비록 피로 얻은 왕위지만, 국방력을 강화하고 법전인 '경국대전'을 편찬해 나라를 안정시킨다.", next: "joseon_imjin" },
-                    { text: "양심의 가책을 느껴 왕위를 다시 단종에게 돌려주고 물러난다.", next: "crisis_chaos" },
-                    { text: "반대파를 너무 많이 죽여 인재가 씨가 마른다.", next: "crisis_purge" }
-                ]
-            },
-            crisis_chaos: {
-                type: 'crisis', badge: 'badge-crisis', title: "위기: 왕권 다툼",
-                desc: "물러나는 척하다가 다시 정변을 일으켜 피바람이 멈추지 않습니다. 왕권이 땅에 떨어지고 신하들이 파벌을 나누어 싸웁니다.",
-                choices: [
-                    { text: "혼란을 수습하고 법전(경국대전) 체제를 정비한다.", next: "joseon_imjin" }, // 회복
-                    { text: "모든 종친을 죽인다.", next: "end_tyrant" },
-                    { text: "왕실을 해체한다.", next: "end_leaderless" }
-                ]
-            },
-            crisis_purge: {
-                type: 'crisis', badge: 'badge-crisis', title: "위기: 공포 정치",
-                desc: "충신들이 모두 사라지고 왕의 비위만 맞추는 간신배만 남았습니다. 정치는 실종되고 백성들의 삶은 피폐해졌습니다.",
-                choices: [
-                    { text: "사림을 등용하여 훈구 세력을 견제하고 균형을 맞춘다.", next: "joseon_imjin" }, // 회복
-                    { text: "더 많은 사람을 죽인다.", next: "end_tyrant" },
-                    { text: "무당에게 정치를 맡긴다.", next: "end_weakness" }
                 ]
             },
 
@@ -629,7 +719,7 @@
                 choices: [
                     { text: "한산도 앞바다로 적을 유인해 학익진을 펼쳐 궤멸시키고 보급로를 끊는다.", next: "joseon_gwanghae" },
                     { text: "바다를 버리고 육지로 올라가 왕을 호위한다.", next: "crisis_lost_sea" },
-                    { text: "일본 수군과 정면으로 배를 부딪쳐 자폭한다.", next: "end_bad_tactic" }
+                    { text: "일본 수군과 정면 승부하여야 기세를 꺾을 수 있다 무조건 돌격하여 공격한다.", next: "end_bad_tactic" }
                 ]
             },
             crisis_lost_sea: {
@@ -645,7 +735,7 @@
             joseon_gwanghae: {
                 type: 'history', badge: 'badge-joseon', era: "조선 중기", year: "1610년",
                 title: "광해군의 중립 외교",
-                desc: "임진왜란으로 피폐해진 조선. 북쪽에서는 여진족이 세운 후금(청)이 강성해지고, 쇠퇴하는 명나라는 조선에 파병을 요구합니다. 명분과 실리 사이에서 선택해야 합니다.",
+                desc: "임진왜란으로 피폐해진 조선. 북쪽에서는 여진족이 세운 후금(청)이 강성해지고, 쇠퇴하는 명나라는 조선에 군대를 보내달라고 요구합니다. 명분과 실리 사이에서 선택해야 합니다.",
                 progress: 68, icon: "⚖️",
                 choices: [
                     { text: "명에 군대를 보내되, 후금에는 싸울 뜻이 없음을 알리는 중립 외교를 펼친다.", next: "joseon_manchu" },
@@ -664,10 +754,10 @@
             },
             crisis_ming_revenge: {
                 type: 'crisis', badge: 'badge-crisis', title: "위기: 명의 보복",
-                desc: "부모의 나라라 섬기던 명이 배신감을 느끼고 경제 제재를 가합니다. 사대부들은 '패륜'이라며 왕을 비난하고 반정을 꾀합니다.",
+                desc: "부모의 나라라 섬기던 명이 배신감을 느끼고 경제 제재를 가합니다. 사대부들은 '패륜'이라며 왕을 비난하고 반란을 꾀합니다.",
                 choices: [
                     { text: "중립을 지키려 했다고 해명하고 실리를 챙긴다.", next: "joseon_manchu" }, // 회복
-                    { text: "왕위에서 쫓겨난다 (인조반정).", next: "joseon_manchu" }, // 역사적 흐름으로 합류
+                    { text: "후금 편을 드는 것이 낫다고 계속 주장하며 나의 의견을 굽히지 않는다.", next: "joseon_manchu" }, // 역사적 흐름으로 합류
                     { text: "후금의 속국이 되기를 자처한다.", next: "end_traitor" }
                 ]
             },
@@ -675,12 +765,12 @@
             joseon_manchu: {
                 type: 'history', badge: 'badge-joseon', era: "조선 중기", year: "1636년",
                 title: "병자호란",
-                desc: "인조반정으로 광해군이 쫓겨나고, 친명배금 정책을 쓰자 청나라(후금)가 쳐들어왔습니다. 인조는 남한산성에 고립되어 춥고 배고픈 겨울을 보내고 있습니다. 강화도마저 함락되었습니다.",
+                desc: "인조반정으로 광해군이 쫓겨나고, 친명배금(명나라와 친하게 지내고 후금과 가까이 하지 않는) 정책을 쓰자 청나라(후금)가 쳐들어왔습니다. 인조는 남한산성에 고립되어 춥고 배고픈 겨울을 보내고 있습니다. 강화도마저 함락되었습니다.",
                 progress: 70, icon: "❄️",
                 choices: [
-                    { text: "치욕스럽지만 항복하여 왕조와 백성을 보존한다. (삼전도의 굴욕)", next: "joseon_yeongjo" },
-                    { text: "오랑캐에게 무릎 꿇을 수 없다. 끝까지 싸우다 전원 옥쇄한다.", next: "end_joseon_fall" },
-                    { text: "자결한다.", next: "end_leaderless" }
+                    { text: "치욕스럽지만 항복하여 왕조와 백성을 보존한다.", next: "joseon_yeongjo" },
+                    { text: "오랑캐에게 무릎 꿇을 수 없다. 끝까지 싸운다.", next: "end_joseon_fall" },
+                    { text: "싸우다 죽는 것은 두려우니 자결한다.", next: "end_leaderless" }
                 ]
             },
 
@@ -690,16 +780,16 @@
                 desc: "신하들이 동인, 서인, 노론, 소론으로 나뉘어 권력 다툼(붕당 정치)을 하느라 민생은 뒷전입니다. 영조와 정조는 이 고질적인 병폐를 고치려 합니다.",
                 progress: 75, icon: "🏛️",
                 choices: [
-                    { text: "어느 한 쪽에 치우치지 않고 인재를 고루 등용하는 탕평책을 쓴다.", next: "joseon_silhak" },
+                    { text: "어느 한 쪽에 치우치지 않고 인재를 고루 등용하는 탕평책을 쓴다.", next: "joseon_jeongjo" },
                     { text: "나를 지지하는 특정 붕당의 편만 든다.", next: "crisis_faction" },
                     { text: "골치 아픈 정치는 신하들에게 맡기고 포기한다.", next: "crisis_weak_governance" }
                 ]
             },
             crisis_faction: {
                 type: 'crisis', badge: 'badge-crisis', title: "위기: 세도 정치의 서막",
-                desc: "한 정파가 권력을 독점하자 견제 장치가 사라졌습니다. 매관매직이 성행하고 지방 관리들의 수탈이 극에 달했습니다.",
+                desc: "한 정파가 권력을 독점하자 견제 장치가 사라졌습니다. 매관매직이 성행하고 지방 관리들이 마음대로 행동하여 백성들의 생활이 크게 어려워집니다.",
                 choices: [
-                    { text: "규장각을 설치하여 젊은 인재를 키우고 붕당의 균형을 맞춘다.", next: "joseon_silhak" }, // 회복
+                    { text: "규장각을 설치하여 젊은 인재를 키우고 붕당의 균형을 맞춘다.", next: "joseon_jeongjo" }, // 회복
                     { text: "백성들의 고혈을 짜내어 사치향락을 즐긴다.", next: "end_tyrant" },
                     { text: "반대파를 모두 귀양 보낸다.", next: "crisis_faction" } // 루프지만 선택지 제공
                 ]
@@ -708,16 +798,38 @@
                 type: 'crisis', badge: 'badge-crisis', title: "위기: 민란의 시대",
                 desc: "나라가 기능을 멈추자 참다못한 농민들이 죽창을 들고 일어났습니다. 홍경래의 난을 시작으로 전국이 불타오릅니다.",
                 choices: [
-                    { text: "삼정의 문란을 바로잡고 암행어사를 파견해 민생을 챙긴다.", next: "joseon_silhak" }, // 회복
-                    { text: "군대를 보내 무자비하게 진압하여 피로 씻는다.", next: "end_tyrant" },
+                    { text: "나라의 혼란을 바로잡고 암행어사를 파견해 민생을 챙긴다.", next: "joseon_jeongjo" }, // 회복
+                    { text: "군대를 보내 무자비하게 진압하여 나라를 안정시킨다.", next: "end_tyrant" },
                     { text: "왕궁 문을 걸어 잠그고 모른 척한다.", next: "end_joseon_fall" }
+                ]
+            },
+
+            // [추가 시나리오 3: 정조]
+            joseon_jeongjo: {
+                type: 'history', badge: 'badge-joseon', era: "조선 후기", year: "1794년",
+                title: "정조의 개혁과 수원 화성",
+                desc: "정조 대왕은 아버지 사도세자의 묘를 옮기고, 강력한 왕권을 상징하는 신도시 '수원 화성'을 건설하려 합니다. 정약용이 거중기를 발명하여 공사를 돕고 있습니다.",
+                progress: 77, icon: "🏰",
+                choices: [
+                    { text: "화성을 완공하여 상업과 국방의 중심지로 삼고 개혁을 완성한다.", next: "joseon_silhak", unlock: 'reformer' },
+                    { text: "돈이 너무 많이 드니 공사를 중단한다.", next: "crisis_weak_king" },
+                    { text: "반대하는 노론 벽파를 모두 처형하고 공포 정치를 한다.", next: "end_tyrant" }
+                ]
+            },
+            crisis_weak_king: {
+                type: 'crisis', badge: 'badge-crisis', title: "위기: 멈춘 개혁",
+                desc: "개혁이 중단되자 기득권 세력이 다시 득세하여 왕권이 약화되었습니다. 백성들의 삶은 나아지지 않았습니다.",
+                choices: [
+                    { text: "규장각을 통해 젊은 인재를 등용하여 다시 개혁의 불씨를 살린다.", next: "joseon_silhak" }, // 회복
+                    { text: "왕위를 내놓고 물러난다.", next: "end_weakness" },
+                    { text: "힘 센 신하들에게 나라를 맡긴다.", next: "crisis_faction" }
                 ]
             },
 
             joseon_silhak: {
                 type: 'history', badge: 'badge-joseon', era: "조선 후기", year: "19세기 초",
                 title: "실학의 대두",
-                desc: "공자 왈 맹자 왈 하는 탁상공론 대신, 농업과 상공업 등 실생활에 도움이 되는 '실학'이 등장했습니다. 김정호는 전국을 돌며 정밀한 지도를 만들었습니다.",
+                desc: "공자 왈 맹자 왈 하는 백성들의 생황과는 직접적 관련이 없는 학문 대신, 농업과 상공업 등 실생활에 도움이 되는 '실학'이 등장했습니다. 김정호는 전국을 돌며 정밀한 지도를 만들었습니다.",
                 progress: 78, icon: "🗺️",
                 choices: [
                     { text: "정확한 '대동여지도'를 보급하여 상공업과 국방에 활용한다.", next: "modern_daewon" },
@@ -730,7 +842,7 @@
                 desc: "국토에 대한 정보가 없어 물류 유통이 막히고, 적이 쳐들어와도 길을 몰라 막을 수가 없습니다.",
                 choices: [
                     { text: "실학자들의 연구를 지원하여 나라의 눈과 귀를 밝힌다.", next: "modern_daewon" }, // 회복
-                    { text: "옛날 지도만 고집한다.", next: "crisis_tech_lag" },
+                    { text: "옛날 지도가 정확하니 옛 문헌을 조사한다.", next: "crisis_tech_lag" },
                     { text: "외국 지도를 몰래 비싼 값에 사온다.", next: "end_culture_lost" }
                 ]
             },
@@ -739,7 +851,7 @@
                 desc: "서양은 증기선을 만들고 산업혁명을 일으키는데, 우리는 아직도 낡은 농기구에 의존하고 있습니다. 국력 차이가 벌어집니다.",
                 choices: [
                     { text: "북학파의 주장을 받아들여 청나라와 서양의 문물을 적극 배운다.", next: "modern_daewon" }, // 회복
-                    { text: "성리학만이 살길이라며 기술을 천시한다.", next: "end_elite_society" },
+                    { text: "성리학만이 살길이라며 기술을 천시(무시)한다.", next: "end_elite_society" },
                     { text: "모든 기술자를 천민 취급한다.", next: "end_weakness" }
                 ]
             },
@@ -764,7 +876,7 @@
                 choices: [
                     { text: "지금이라도 자주적 개혁을 시도하고 신식 군대를 기른다.", next: "modern_gapsin" }, // 회복
                     { text: "나라를 팔아먹고 나만 부자가 된다.", next: "end_traitor" },
-                    { text: "다시 문을 닫으려 하지만 이미 늦었다.", next: "end_colony_khitan" } // 식민지 엔딩 재활용
+                    { text: "다시 문을 닫으려 한다.", next: "end_colony_imperial" } // 식민지 엔딩 재활용
                 ]
             },
 
@@ -774,7 +886,7 @@
                 desc: "청나라의 내정 간섭이 심해지자, 김옥균 등 급진 개화파는 우정총국 개국 축하연을 틈타 정변을 일으켰습니다. 근대 국가를 향한 짧고 강렬한 시도입니다.",
                 progress: 83, icon: "📮",
                 choices: [
-                    { text: "3일 천하로 끝났지만, 인민 평등과 근대 국가 수립의 의지를 보여준다.", next: "modern_donghak" },
+                    { text: "인민 평등과 근대 국가 수립의 의지를 보여주기 위해 개혁방법을 제시한다.", next: "modern_donghak" },
                     { text: "일본군을 믿고 끝까지 시가전을 벌인다.", next: "crisis_civil_war" },
                     { text: "정변을 포기하고 청나라 장군 앞에 무릎 꿇고 사죄한다.", next: "crisis_subservience" }
                 ]
@@ -804,8 +916,8 @@
                 desc: "탐관오리의 횡포에 참다못한 농민들이 전봉준을 중심으로 일어났습니다. '사람이 곧 하늘이다(인내천)'라는 기치 아래, 낡은 세상을 뒤엎으려 합니다.",
                 progress: 85, icon: "🌾",
                 choices: [
-                    { text: "폐정 개혁을 시도하고, 침략해오는 일본군에 맞서 우금치에서 결사 항전한다.", next: "modern_eulsa" },
-                    { text: "조정의 회유책에 넘어가 무기를 버리고 해산한다.", next: "crisis_peasant_fail" },
+                    { text: "외군군이 조선에 들어올 수 있으니 정부의 말을 받아들여 일단 해산했다가 혹시 모를 외국군의 침략에 대비한다.", next: "modern_eulsa" },
+                    { text: "나라가 혼란스러우니 곧바로 무기를 버리고 해산한다.", next: "crisis_peasant_fail" },
                     { text: "왕조를 부정하고 농민들만의 공화국을 선포한다.", next: "crisis_republic_fail" }
                 ]
             },
@@ -822,7 +934,7 @@
                 type: 'crisis', badge: 'badge-crisis', title: "위기: 고립된 이상",
                 desc: "너무 급진적인 주장에 양반과 일반 백성들이 등을 돌렸습니다. 고립된 농민군은 토벌대에 의해 진압되었습니다.",
                 choices: [
-                    { text: "반외세 기치를 높이 들고 민족의 단결을 호소한다.", next: "modern_eulsa" }, // 회복
+                    { text: "외국군에 저항하기 위해 민족의 단결을 호소한다.", next: "modern_eulsa" }, // 회복
                     { text: "우리끼리만 잘 사는 마을을 만든다.", next: "end_weakness" },
                     { text: "약탈을 일삼아 도적떼가 된다.", next: "end_savage" }
                 ]
@@ -834,20 +946,44 @@
                 desc: "일본이 군대를 앞세워 궁궐을 포위하고, 대한제국의 외교권을 박탈하는 조약에 강제로 서명하게 했습니다. 나라가 망하기 일보 직전입니다.",
                 progress: 88, icon: "🥀",
                 choices: [
-                    { text: "헤이그에 특사를 파견해 부당함을 알리고, 전국에서 의병을 일으켜 저항한다.", next: "colonial_an" },
+                    { text: "헤이그에 특사를 파견해 부당함을 알리고, 전국에서 의병을 일으켜 저항한다.", next: "modern_gukchae" },
                     { text: "어쩔 수 없다. 도장을 찍고 일본의 보호국이 된다.", next: "end_traitor" },
-                    { text: "러시아 황제에게 망명을 신청한다.", next: "crisis_exile" }
+                    { text: "러시아 황제에게 도움을 요청하여 러시아로 도망친다.", next: "crisis_exile" }
                 ]
             },
             crisis_exile: {
                 type: 'crisis', badge: 'badge-crisis', title: "위기: 망명 정부",
                 desc: "황제가 나라를 버리고 떠나자 구심점을 잃은 국내는 빠르게 일본에 잠식당했습니다. 백성들은 버려졌다는 절망감에 빠졌습니다.",
                 choices: [
-                    { text: "연해주에서 의병 부대를 조직하여 국내 진공을 준비한다.", next: "colonial_an" }, // 회복
+                    { text: "최대한 빨리 다시 대한제국으로 돌아가 나라를 정상화 시키기 위해 노력한다.", next: "modern_gukchae" }, // 회복
                     { text: "러시아 시민이 되어 편하게 산다.", next: "end_coward" },
-                    { text: "일본에 귀순한다.", next: "end_traitor" }
+                    { text: "일본에 항복한다.", next: "end_traitor" }
                 ]
             },
+
+            // [추가 시나리오 4: 국채보상운동]
+            modern_gukchae: {
+                type: 'history', badge: 'badge-modern', era: "대한제국", year: "1907년",
+                title: "국채보상운동",
+                desc: "일본은 대한제국에 강제로 돈을 빌려주어 경제적으로 꼼짝못하게 하려고 합니다. 나랏빚이 1,300만 원(그 당시 나라의 1년치 예산보다 많은 돈)에 달해 나라가 망할 위기에 처했습니다. 대구에서 시작된 운동이 전국으로 퍼집니다.",
+                progress: 89, icon: "💰",
+                choices: [
+                    { text: "남자는 담배를 끊고 여자는 비녀를 팔아 나랏빚을 갚자고 호소한다.", next: "colonial_an", unlock: 'patriot' },
+                    { text: "다른 나라(영국, 미국)에 돈을 빌려 일본 빚을 갚는다.", next: "end_colony_debt" },
+                    { text: "갚을 능력이 없으니 파산 선언을 한다.", next: "crisis_economic_collapse" }
+                ]
+            },
+            end_colony_debt: { type: 'ending', title: "BAD END: 빚더미 식민지", desc: "빚을 빚으로 막으려다 서구 열강의 이권 침탈 대상이 되어 찢겨졌습니다.", choices: [{ text: "다시 도전", next: "start", style: "restart" }] },
+            crisis_economic_collapse: {
+                type: 'crisis', badge: 'badge-crisis', title: "위기: 경제 파탄",
+                desc: "국가 신용도가 바닥을 치고 화폐 가치가 폭락했습니다. 백성들은 굶주리고 일본 상인들이 헐값에 땅을 사들입니다.",
+                choices: [
+                    { text: "민족 자본을 육성하여 경제 자립을 꾀한다.", next: "colonial_an" }, // 회복
+                    { text: "일본 화폐를 쓰며 경제권에 편입된다.", next: "end_assimilation" },
+                    { text: "산으로 들어가 자급자족한다.", next: "end_weakness" }
+                ]
+            },
+
 
             colonial_an: {
                 type: 'history', badge: 'badge-modern', era: "일제강점기 직전", year: "1909년",
@@ -899,7 +1035,7 @@
                 choices: [
                     { text: "유인책과 매복 작전으로 일본군을 대파하여 독립 전쟁 사상 최대 승리를 거둔다.", next: "colonial_language" },
                     { text: "일본군의 전력이 너무 강하니 전투를 피하고 흩어진다.", next: "crisis_scattered" },
-                    { text: "소련의 지원을 믿고 자유시로 이동한다.", next: "crisis_soviet_betrayal" }
+                    { text: "소련의 지원을 믿고 소련군 아래로 들어간다.", next: "crisis_soviet_betrayal" }
                 ]
             },
             crisis_scattered: {
@@ -907,16 +1043,16 @@
                 desc: "흩어진 독립군 부대들은 일본군의 끈질긴 토벌 작전에 하나둘씩 무너집니다. 구심점을 잃었습니다.",
                 choices: [
                     { text: "다시 3부가 통합하여 국민부를 결성하고 전열을 정비한다.", next: "colonial_language" }, // 회복
-                    { text: "마적단이 되어 약탈을 일삼는다.", next: "end_savage" },
+                    { text: "도적단이 되어 약탈을 일삼는다.", next: "end_savage" },
                     { text: "일본군에 투항한다.", next: "end_traitor" }
                 ]
             },
             crisis_soviet_betrayal: {
                 type: 'crisis', badge: 'badge-crisis', title: "위기: 자유시 참변",
-                desc: "믿었던 소련군이 독립군의 무장 해제를 요구하며 공격했습니다. 수많은 독립군이 희생되고 주력이 와해되었습니다.",
+                desc: "믿었던 소련군이 독립군의 무장 해제를 요구하며 공격했습니다. 수많은 독립군이 희생되고 주력이 흩어지게 되었습니다.",
                 choices: [
-                    { text: "만주로 돌아와 참의부, 정의부, 신민부를 조직하여 재기한다.", next: "colonial_language" }, // 회복
-                    { text: "공산주의자가 되어 소련군에 들어간다.", next: "end_culture_lost" },
+                    { text: "만주로 돌아와 새로 군대를 조직하여 일본과 싸울 준비를 다시 시작한다.", next: "colonial_language" }, // 회복
+                    { text: "공산주의자가 되어 소련군에 들어간다.", next: "end_soviet_red" },
                     { text: "독립의 꿈을 접는다.", next: "end_assimilation" }
                 ]
             },
@@ -950,13 +1086,23 @@
                 title: "🎉 광복, 그리고 새로운 시작",
                 desc: "1945년 8월 15일, 라디오에서 일본 천황의 항복 방송이 흘러나옵니다. 거리로 뛰쳐나온 사람들은 태극기를 흔들며 '대한 독립 만세'를 외칩니다.<br><br>당신의 끈질긴 투쟁과 올바른 선택 덕분에 우리 민족은 빛을 되찾았습니다(光復). 수많은 선조들의 피와 땀이 헛되지 않았습니다. 역사의 수호자여, 수고하셨습니다!",
                 progress: 100, icon: "🌞",
+                unlock: 'history_guardian',
                 choices: [{ text: "위대한 여정을 다시 시작하기", next: "start", style: "restart" }]
             },
 
             // === 배드 엔딩들 (완전 실패) ===
+            end_fail_founding: { type: 'ending', title: "BAD END: 건국 실패", desc: "고난을 이겨내지 못하고 나라를 세우는 것을 포기했습니다. 당신의 이름은 잊혀졌습니다.", choices: [{ text: "다시 도전", next: "start", style: "restart" }] },
+            end_vassal_goguryeo: { type: 'ending', title: "BAD END: 고구려의 속국", desc: "자주성을 버리고 고구려의 지배를 받는 신세가 되었습니다.", choices: [{ text: "다시 도전", next: "start", style: "restart" }] },
+            end_vassal_baekje: { type: 'ending', title: "BAD END: 백제의 깃발 아래", desc: "백제에게 패권을 넘겨주고 그들의 신하가 되었습니다.", choices: [{ text: "다시 도전", next: "start", style: "restart" }] },
+            end_exile_ancient: { type: 'ending', title: "BAD END: 바다 건너 도피", desc: "한반도를 버리고 일본으로 도망쳤습니다. 고향의 역사는 당신 없이 흘러갑니다.", choices: [{ text: "다시 도전", next: "start", style: "restart" }] },
+            end_vassal_generic: { type: 'ending', title: "BAD END: 대국의 그늘", desc: "중국 왕조의 신하를 자처하여 독자적인 천하관을 잃어버렸습니다.", choices: [{ text: "다시 도전", next: "start", style: "restart" }] },
+            end_vassal_jurchen: { type: 'ending', title: "BAD END: 여진의 형제국", desc: "여진족에게 머리를 숙이고 땅을 내주었습니다. 북방의 호랑이는 이제 고려를 얕잡아 봅니다.", choices: [{ text: "다시 도전", next: "start", style: "restart" }] },
+            end_colony_imperial: { type: 'ending', title: "BAD END: 서구 열강의 먹잇감", desc: "준비 없이 문을 열어 서양 세력의 경제적, 정치적 식민지가 되었습니다.", choices: [{ text: "다시 도전", next: "start", style: "restart" }] },
+            end_soviet_red: { type: 'ending', title: "BAD END: 붉은 군대", desc: "소련군에 편입되어 민족의 독립보다는 이념을 따르는 삶을 살게 되었습니다.", choices: [{ text: "다시 도전", next: "start", style: "restart" }] },
+            
             end_myth_fail: { type: 'ending', title: "BAD END: 신화의 끝", desc: "단군 신화는 시작되지 못했습니다. 한반도는 문명화되지 못했습니다.", choices: [{ text: "다시 도전", next: "start", style: "restart" }] },
             end_savage: { type: 'ending', title: "BAD END: 야만의 시대", desc: "법과 질서 대신 폭력만이 남은 세상이 되었습니다.", choices: [{ text: "다시 도전", next: "start", style: "restart" }] },
-            end_tyrant: { type: 'ending', title: "BAD END: 폭군의 말로", desc: "백성을 억압한 국가는 오래가지 못하고 무너졌습니다.", choices: [{ text: "다시 도전", next: "start", style: "restart" }] },
+            end_tyrant: { type: 'ending', title: "BAD END: 폭군의 말로", desc: "백성을 억압한 국가는 오래가지 못하고 무너졌습니다.", unlock: 'tyrant', choices: [{ text: "다시 도전", next: "start", style: "restart" }] },
             end_buyeo_sub: { type: 'ending', title: "BAD END: 잊혀진 부여", desc: "고구려는 건국되지 못했고 부여의 변방 부족으로 남았습니다.", choices: [{ text: "다시 도전", next: "start", style: "restart" }] },
             end_bad_tactic: { type: 'ending', title: "BAD END: 무모한 패배", desc: "용기만 있고 지략이 없는 싸움은 패배로 끝났습니다.", choices: [{ text: "다시 도전", next: "start", style: "restart" }] },
             end_sui_colony: { type: 'ending', title: "BAD END: 중원의 식민지", desc: "한반도는 중국 왕조의 일개 군현으로 전락했습니다.", choices: [{ text: "다시 도전", next: "start", style: "restart" }] },
@@ -965,7 +1111,7 @@
             end_weakness: { type: 'ending', title: "BAD END: 나약한 국가", desc: "스스로를 지킬 힘이 없는 나라는 결국 잡아먹혔습니다.", choices: [{ text: "다시 도전", next: "start", style: "restart" }] },
             end_coward: { type: 'ending', title: "BAD END: 비겁한 변명", desc: "도망친 곳에 낙원은 없습니다. 역사는 당신을 기억하지 않을 것입니다.", choices: [{ text: "다시 도전", next: "start", style: "restart" }] },
             end_colony_khitan: { type: 'ending', title: "BAD END: 유목민의 목초지", desc: "고려는 사라지고 거란족의 말들이 뛰노는 땅이 되었습니다.", choices: [{ text: "다시 도전", next: "start", style: "restart" }] },
-            end_traitor: { type: 'ending', title: "BAD END: 씻을 수 없는 오명", desc: "매국노라는 이름은 영원히 역사에 남을 것입니다.", choices: [{ text: "다시 도전", next: "start", style: "restart" }] },
+            end_traitor: { type: 'ending', title: "BAD END: 씻을 수 없는 오명", desc: "매국노라는 이름은 영원히 역사에 남을 것입니다.", unlock: 'traitor', choices: [{ text: "다시 도전", next: "start", style: "restart" }] },
             end_barbaric: { type: 'ending', title: "BAD END: 문명의 퇴보", desc: "지식을 천시한 결과 국가는 야만 상태로 돌아갔습니다.", choices: [{ text: "다시 도전", next: "start", style: "restart" }] },
             end_culture_lost: { type: 'ending', title: "BAD END: 얼빠진 민족", desc: "말과 글, 정신을 잃어버린 민족에게 미래는 없습니다.", choices: [{ text: "다시 도전", next: "start", style: "restart" }] },
             end_yuan_province: { type: 'ending', title: "BAD END: 정동행성", desc: "고려는 원나라의 일개 행정구역이 되어 사라졌습니다.", choices: [{ text: "다시 도전", next: "start", style: "restart" }] },
@@ -1009,6 +1155,11 @@
             const data = getSafeData(sceneId);
             const container = document.getElementById('game-container');
             const choicesDiv = document.getElementById('choices');
+
+            // 칭호 해금 체크
+            if (data.unlock) {
+                unlockTitle(data.unlock);
+            }
 
             // 턴수 증가 (정사 진행일 때만)
             if (data.type === 'history') turnCount++;
@@ -1060,7 +1211,13 @@
 
                 btn.className = btnClass;
                 btn.textContent = choice.text;
-                btn.onclick = () => renderScene(choice.next);
+                
+                // 선택지 클릭 시 칭호 해금 (선택지에 unlock 속성이 있는 경우)
+                btn.onclick = () => {
+                    if (choice.unlock) unlockTitle(choice.unlock);
+                    renderScene(choice.next);
+                };
+                
                 choicesDiv.appendChild(btn);
             });
         }
