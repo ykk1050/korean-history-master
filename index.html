@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>역사의 선택: 광복을 향하여 - 스토리텔링 에디션</title>
+    <title>역사의 선택: 광복을 향하여</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Nanum+Myeongjo:wght@400;700;800&display=swap');
@@ -111,9 +111,79 @@
             z-index: 200;
             pointer-events: none;
         }
+
+        /* 미니게임 스타일 */
+        #minigame-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.8);
+            background-image: url('dangunbackground.png');
+            background-size: cover;
+            background-position: center;
+            z-index: 300;
+        }
+        .falling-item {
+            position: absolute;
+            width: 80px;
+            height: 80px;
+            cursor: pointer;
+            object-fit: contain;
+            animation: fall linear forwards;
+            user-select: none;
+            touch-action: manipulation; 
+        }
+        @keyframes fall {
+            from { top: -100px; transform: rotate(0deg); }
+            to { top: 110vh; transform: rotate(360deg); }
+        }
+        .score-popup {
+            position: absolute;
+            font-size: 32px;
+            font-weight: bold;
+            pointer-events: none;
+            animation: popup 0.8s ease-out forwards;
+            z-index: 310;
+            text-shadow: 2px 2px 0 #000;
+        }
+        @keyframes popup {
+            0% { opacity: 1; transform: translateY(0); }
+            100% { opacity: 0; transform: translateY(-50px); }
+        }
     </style>
 </head>
-<body class="flex items-center justify-center min-h-screen p-2 md:p-4">
+<body class="flex flex-col items-center justify-center min-h-screen p-2 md:p-4 gap-4">
+    <!-- 웅녀 미니게임 오버레이 -->
+    <div id="minigame-overlay">
+        <!-- 점수판 -->
+        <div class="absolute top-4 left-4 bg-black/60 text-white p-4 rounded-lg z-10 border border-white/30 backdrop-blur-sm">
+            <div class="text-3xl font-bold mb-2 text-yellow-400">인내심: <span id="mg-score">0</span> / 100</div>
+            <div class="text-sm text-gray-200">
+                <span class="text-green-400 font-bold">● 쑥 & 마늘: +1점</span><br>
+                <span class="text-red-400 font-bold">● 고기 & 술: -1점</span>
+            </div>
+        </div>
+        
+        <!-- 게임 영역 -->
+        <div id="mg-game-area" class="w-full h-full absolute top-0 left-0 overflow-hidden"></div>
+
+        <!-- 결과 메시지 -->
+        <div id="mg-result" class="hidden absolute inset-0 flex flex-col items-center justify-center bg-black/80 z-50 text-white text-center p-8 transition-opacity duration-500">
+            <h2 class="text-5xl font-bold mb-8 text-yellow-400 animate-bounce">🐻 인내의 결실 🎉</h2>
+            <p class="text-2xl mb-12 leading-loose">
+                곰이 사람으로 변하는데 성공하여<br>
+                환웅과 결혼하고,<br>
+                <span class="font-bold text-yellow-200">단군왕검</span>이 태어나<br>
+                고조선을 세웠습니다!
+            </p>
+            <button id="mg-proceed-btn" class="px-10 py-5 bg-blue-600 hover:bg-blue-500 text-white rounded-full text-2xl font-bold transition transform hover:scale-105 shadow-xl border-4 border-blue-400">
+                역사 계속하기 ▶
+            </button>
+        </div>
+    </div>
 
     <div class="max-w-4xl w-full bg-white rounded-xl shadow-2xl overflow-hidden border border-stone-300 relative fade-in" id="game-container">
         
@@ -184,6 +254,10 @@
 
     <!-- 토스트 메시지 -->
     <div id="toast" class="toast">칭호 획득!</div>
+
+    <div class="text-xs text-stone-400 opacity-70 mt-2 font-sans select-none">
+        역사의 선택: 광복을 향해서 made by gamtudyssam 0.001
+    </div>
 
     <script>
         // 칭호 데이터
@@ -259,7 +333,7 @@
                 progress: 2, icon: "🐻",
                 unlock: 'first_step',
                 choices: [
-                    { text: "쑥과 마늘을 주며 100일간 동굴에서 인내하라고 한다.", next: "gojoseon_law" },
+                    { text: "쑥과 마늘을 주며 100일간 동굴에서 인내하라고 한다.", next: "gojoseon_law", minigame: 'bear_game' },
                     { text: "강력한 맹수의 힘이 필요하니 군사로 키운다.", next: "crisis_beast" },
                     { text: "가엽게 여겨 마법을 써서 바로 사람으로 만들어 준다.", next: "crisis_easy_magic" }
                 ]
@@ -1145,6 +1219,118 @@
             return array;
         }
 
+        // --- 웅녀 미니게임 로직 ---
+        let mgInterval;
+        let mgScore = 0;
+        let mgActive = false;
+        let mgNextScene = "";
+
+        function startMinigame(gameType, nextScene) {
+            if (gameType !== 'bear_game') return;
+
+            mgNextScene = nextScene;
+            mgScore = 0;
+            mgActive = true;
+
+            const overlay = document.getElementById('minigame-overlay');
+            const scoreEl = document.getElementById('mg-score');
+            const resultEl = document.getElementById('mg-result');
+            const gameArea = document.getElementById('mg-game-area');
+
+            overlay.style.display = 'block';
+            resultEl.classList.add('hidden');
+            scoreEl.textContent = '0';
+            gameArea.innerHTML = ''; // 기존 아이템 제거
+
+            // 게임 루프 시작 (0.4초마다 생성)
+            mgInterval = setInterval(spawnItem, 400);
+        }
+
+        function spawnItem() {
+            if (!mgActive) return;
+
+            const gameArea = document.getElementById('mg-game-area');
+            const items = [
+                { src: 'garlic.png', type: 'good' },
+                { src: 'Mugwort.png', type: 'good' },
+                { src: 'meat.png', type: 'bad' },
+                { src: 'byu.png', type: 'bad' }
+            ];
+
+            const itemData = items[Math.floor(Math.random() * items.length)];
+            
+            const img = document.createElement('img');
+            img.src = itemData.src;
+            img.className = 'falling-item';
+            
+            // 랜덤 위치
+            const x = Math.random() * (window.innerWidth - 80);
+            img.style.left = `${x}px`;
+            
+            // 랜덤 속도
+            const duration = 2 + Math.random() * 3;
+            img.style.animationDuration = `${duration}s`;
+
+            const clickHandler = (e) => {
+                if (!mgActive) return;
+                
+                const change = itemData.type === 'good' ? 1 : -1;
+                updateScore(change);
+                showScorePopup(e.clientX, e.clientY, change);
+                img.remove();
+            };
+
+            img.addEventListener('mousedown', clickHandler);
+            img.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                const touch = e.touches[0];
+                clickHandler({ clientX: touch.clientX, clientY: touch.clientY });
+            }, { passive: false });
+
+            img.addEventListener('animationend', () => img.remove());
+            gameArea.appendChild(img);
+        }
+
+        function updateScore(change) {
+            mgScore += change;
+            if (mgScore < 0) mgScore = 0;
+            
+            const scoreEl = document.getElementById('mg-score');
+            scoreEl.textContent = mgScore;
+            
+            if (mgScore >= 100) {
+                endMinigame(true);
+            }
+        }
+
+        function showScorePopup(x, y, change) {
+            const popup = document.createElement('div');
+            popup.className = 'score-popup';
+            popup.textContent = change > 0 ? "+1" : "-1";
+            popup.style.color = change > 0 ? "#4ade80" : "#ef4444";
+            popup.style.left = `${x}px`;
+            popup.style.top = `${y}px`;
+            document.getElementById('minigame-overlay').appendChild(popup);
+            
+            popup.addEventListener('animationend', () => popup.remove());
+        }
+
+        function endMinigame(success) {
+            mgActive = false;
+            clearInterval(mgInterval);
+            
+            if (success) {
+                const resultEl = document.getElementById('mg-result');
+                resultEl.classList.remove('hidden');
+            }
+        }
+
+        // 진행하기 버튼 이벤트
+        document.getElementById('mg-proceed-btn').addEventListener('click', () => {
+            document.getElementById('minigame-overlay').style.display = 'none';
+            renderScene(mgNextScene);
+        });
+
         function startGame() {
             renderScene('start');
         }
@@ -1215,7 +1401,12 @@
                 // 선택지 클릭 시 칭호 해금 (선택지에 unlock 속성이 있는 경우)
                 btn.onclick = () => {
                     if (choice.unlock) unlockTitle(choice.unlock);
-                    renderScene(choice.next);
+                    
+                    if (choice.minigame) {
+                        startMinigame(choice.minigame, choice.next);
+                    } else {
+                        renderScene(choice.next);
+                    }
                 };
                 
                 choicesDiv.appendChild(btn);
