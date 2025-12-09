@@ -112,7 +112,7 @@
             pointer-events: none;
         }
 
-        /* 미니게임 스타일 */
+        /* 웅녀 미니게임 스타일 */
         #minigame-overlay {
             display: none;
             position: fixed;
@@ -126,6 +126,96 @@
             background-position: center;
             z-index: 300;
         }
+        
+        /* 미니게임 스타일 */
+        #river-game-overlay,
+        #defense-game-window {
+            display: none;
+        }
+
+        #defense-game-window {
+            z-index: 9999; /* 최상위 레이어 */
+        }
+
+        #river-game-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.8);
+            background-image: url('river.jpg');
+            background-size: cover;
+            background-position: center;
+            z-index: 300;
+        }
+        #jumong-char {
+            position: absolute;
+            width: 180px; /* 3배 크기: 60px * 3 */
+            height: 180px; /* 3배 크기: 60px * 3 */
+            left: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            transition: all 0.3s ease-out;
+            z-index: 320;
+            pointer-events: none; /* 클릭 통과 */
+            filter: drop-shadow(0 0 5px white);
+        }
+        .river-item {
+            position: absolute;
+            width: 210px; /* 3배 크기: 70px * 3 */
+            height: 150px; /* 3배 크기: 50px * 3 */
+            object-fit: contain;
+            animation: float 2s infinite ease-in-out;
+            transition: opacity 0.5s;
+        }
+        
+        /* 가상 컨트롤러 스타일 */
+        .virtual-controls {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            display: grid;
+            grid-template-columns: repeat(3, 60px);
+            grid-template-rows: repeat(2, 60px);
+            gap: 10px;
+            z-index: 330;
+        }
+        .v-btn {
+            width: 60px;
+            height: 60px;
+            background-color: rgba(255, 255, 255, 0.3);
+            border: 2px solid rgba(255, 255, 255, 0.5);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: white;
+            user-select: none;
+            cursor: pointer;
+            backdrop-filter: blur(4px);
+        }
+        .v-btn:active {
+            background-color: rgba(255, 255, 255, 0.6);
+        }
+        .v-up { grid-column: 2; grid-row: 1; }
+        .v-left { grid-column: 1; grid-row: 2; }
+        .v-down { grid-column: 2; grid-row: 2; }
+        .v-right { grid-column: 3; grid-row: 2; }
+        
+        /* PC에서는 가상 키패드 숨김 (선택 사항, 모바일에서만 보이게 하려면 미디어 쿼리 사용) */
+        @media (min-width: 1024px) {
+            .virtual-controls {
+                display: none;
+            }
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+        
         .falling-item {
             position: absolute;
             width: 80px;
@@ -166,7 +256,7 @@
     <div id="minigame-overlay" style="touch-action: none;">
         <!-- 점수판 -->
         <div class="absolute top-4 left-4 bg-black/60 text-white p-4 rounded-lg z-10 border border-white/30 backdrop-blur-sm">
-            <div class="text-3xl font-bold mb-2 text-yellow-400">인내심: <span id="mg-score">0</span> / 100</div>
+            <div id="mg-title-text" class="text-3xl font-bold mb-2 text-yellow-400 select-none cursor-pointer">인내심: <span id="mg-score">0</span> / 100</div>
             <div class="text-sm text-gray-200">
                 <span class="text-green-400 font-bold">● 쑥 & 마늘: +1점</span><br>
                 <span class="text-red-400 font-bold">● 고기 & 술: -1점</span>
@@ -187,6 +277,57 @@
             </p>
             <button id="mg-proceed-btn" class="px-10 py-5 bg-blue-600 hover:bg-blue-500 text-white rounded-full text-2xl font-bold transition transform hover:scale-105 shadow-xl border-4 border-blue-400">
                 역사 계속하기 ▶
+            </button>
+        </div>
+    </div>
+
+    <!-- 주몽 강 건너기 미니게임 오버레이 -->
+    <div id="river-game-overlay" style="touch-action: none;">
+        <!-- 안내 메시지 -->
+        <div class="absolute top-4 left-0 w-full text-center z-20 pointer-events-none">
+            <div class="inline-block bg-black/60 text-white px-6 py-2 rounded-full border border-white/30 backdrop-blur-sm">
+                <span class="text-yellow-400 font-bold">물고기</span>와 <span class="text-green-400 font-bold">자라</span>를 밟고 강을 건너세요!
+            </div>
+        </div>
+
+        <!-- 게임 영역 -->
+        <div id="rg-game-area" class="w-full h-full absolute top-0 left-0 overflow-hidden">
+            <!-- 주몽 캐릭터 -->
+            <img id="jumong-char" src="mong.png" alt="주몽">
+        </div>
+
+        <!-- 가상 컨트롤러 -->
+        <div class="virtual-controls">
+            <div class="v-btn v-up" data-dir="up">▲</div>
+            <div class="v-btn v-left" data-dir="left">◀</div>
+            <div class="v-btn v-down" data-dir="down">▼</div>
+            <div class="v-btn v-right" data-dir="right">▶</div>
+        </div>
+
+        <!-- 결과 메시지 -->
+        <div id="rg-result" class="hidden absolute inset-0 flex flex-col items-center justify-center bg-black/80 z-50 text-white text-center p-8 transition-opacity duration-500">
+            <h2 class="text-5xl font-bold mb-8 text-blue-400 animate-bounce">🌊 탈출 성공! 🐎</h2>
+            <p class="text-2xl mb-12 leading-loose">
+                주몽이 부여의 왕자들로부터<br>
+                무사히 탈출했습니다!<br><br>
+                <span class="font-bold text-yellow-200">주몽은 졸본으로 향합니다!</span>
+            </p>
+            <button id="rg-proceed-btn" class="px-10 py-5 bg-blue-600 hover:bg-blue-500 text-white rounded-full text-2xl font-bold transition transform hover:scale-105 shadow-xl border-4 border-blue-400">
+                고구려 건국하기 ▶
+            </button>
+        </div>
+
+        <!-- 실패 메시지 -->
+        <div id="rg-failure" class="hidden absolute inset-0 flex flex-col items-center justify-center bg-black/90 z-50 text-white text-center p-8 transition-opacity duration-500">
+            <h2 class="text-5xl font-bold mb-8 text-red-400 animate-pulse">💔 탈출 실패 😢</h2>
+            <p class="text-2xl mb-12 leading-loose">
+                물고기와 자라가 모두 사라져<br>
+                강을 건너지 못했습니다.<br><br>
+                <span class="font-bold text-red-300">주몽은 부여 왕자들에게 잡혔습니다.<br>
+                고구려의 역사는 강물 속으로 사라졌습니다.</span>
+            </p>
+            <button id="rg-restart-btn" class="px-10 py-5 bg-red-600 hover:bg-red-500 text-white rounded-full text-2xl font-bold transition transform hover:scale-105 shadow-xl border-4 border-red-400">
+                처음부터 다시 시작 🔄
             </button>
         </div>
     </div>
@@ -261,8 +402,58 @@
     <!-- 토스트 메시지 -->
     <div id="toast" class="toast">칭호 획득!</div>
 
+    <!-- 삼별초 방어전 미니게임 새 창 -->
+    <div id="defense-game-window" class="hidden fixed inset-0 bg-black z-50 flex items-center justify-center">
+        <div class="bg-gradient-to-b from-blue-900 to-green-900 w-11/12 h-5/6 rounded-lg shadow-2xl border-4 border-yellow-400 overflow-hidden relative">
+            <!-- 헤더 -->
+            <div class="bg-yellow-600 text-black p-4 text-center font-bold text-xl border-b-4 border-yellow-400">
+                🏰 고려 대몽 항쟁 1231년~ 🏹
+            </div>
+
+            <!-- 게임 영역 -->
+            <div id="defense-game-area" class="w-full h-full relative overflow-hidden" style="background-image: url('forestbackground.png'); background-size: cover; background-position: center;">
+                <!-- 성 (왼쪽 아래, 3배 크기) -->
+                <img id="defense-castle" src="castlekorean.png" alt="고려 성" class="absolute bottom-4 left-4 w-96 h-96">
+            </div>
+
+            <!-- 점수판 -->
+            <div class="absolute top-20 left-4 bg-black/80 text-white p-4 rounded-lg z-20 border border-white/50 backdrop-blur-sm">
+                <div class="text-yellow-400 font-bold text-2xl mb-2">삼별초 방어전</div>
+                <div class="text-sm text-gray-200">
+                    <span class="text-red-400 font-bold">성 HP: <span id="defense-castle-hp">100</span></span><br>
+                    <span class="text-blue-400 font-bold">처치: <span id="defense-score">0</span></span>
+                </div>
+            </div>
+
+            <!-- UI 요소들 -->
+            <div class="absolute top-4 right-4 flex flex-col gap-2">
+                <button id="defense-achievement-btn" class="bg-yellow-500 hover:bg-yellow-400 text-black px-4 py-2 rounded-lg font-bold shadow-lg">
+                    🏆 업적 보기
+                </button>
+                <div class="bg-blue-600 text-white px-4 py-2 rounded-lg font-bold">
+                    ☸️ 고려
+                </div>
+            </div>
+
+
+            <!-- 결과 메시지 -->
+            <div id="defense-result" class="hidden absolute inset-0 bg-black/90 flex flex-col items-center justify-center text-white text-center p-8">
+                <h2 class="text-5xl font-bold mb-8 text-red-400 animate-pulse">⚔️ 방어 실패 💔</h2>
+                <p class="text-2xl mb-12 leading-loose">
+                    삼별초는 열심히 싸웠지만<br>
+                    결국 몽골을 이기지 못했습니다.<br><br>
+                    <span class="font-bold text-yellow-200">고려는 몽골이 약해지는 때까지<br>
+                    기회를 엿보며 인내하기로 합니다.</span>
+                </p>
+                <button id="defense-proceed-btn" class="px-10 py-5 bg-blue-600 hover:bg-blue-500 text-white rounded-full text-2xl font-bold transition transform hover:scale-105 shadow-xl border-4 border-blue-400">
+                    다음으로 진행하기 ▶
+                </button>
+            </div>
+        </div>
+    </div>
+
     <div class="text-xs text-stone-400 opacity-70 mt-2 font-sans select-none">
-        역사의 선택: 광복을 향해서 made by gamtudyssam 0.002
+        역사의 선택: 광복을 향해서 made by gamtudyssam 0.003
     </div>
 
     <script>
@@ -369,7 +560,7 @@
                 desc: "농경이 발달하고 청동기 문화를 바탕으로 고조선 사회는 점점 커지고 복잡해졌습니다. 사람들의 재산을 보호하고 사회 질서를 바로잡기 위해서는 강력한 사회적 합의가 필요합니다.",
                 progress: 5, icon: "⚖️",
                 choices: [
-                    { text: "생명과 사유 재산을 중시하는 8개의 법(8조법)을 만든다.", next: "goguryeo_jumong" },
+                    { text: "생명과 사유 재산을 중시하는 8개의 법(8조법)을 만든다.", next: "jumong_chase" },
                     { text: "모든 것은 공동 소유로 하고 개인의 재산을 금지한다.", next: "crisis_commune" },
                     { text: "힘센 자가 모든 것을 가지는 약육강식의 법을 만든다.", next: "end_savage" }
                 ]
@@ -378,7 +569,7 @@
                 type: 'crisis', badge: 'badge-crisis', title: "위기: 멈춰버린 발전",
                 desc: "내가 열심히 일해서 얻은 곡식도 내 것이 아니니, 아무도 농사를 열심히 짓지 않습니다. 식량이 부족해지고 문명의 발전이 멈췄습니다. 사람들은 배고픔에 시달립니다.",
                 choices: [
-                    { text: "지금이라도 사유 재산을 인정하고 열심히 일한 자에게 보상을 준다.", next: "goguryeo_jumong" }, // 회복
+                    { text: "지금이라도 사유 재산을 인정하고 열심히 일한 자에게 보상을 준다.", next: "jumong_chase" }, // 회복
                     { text: "게으른 자들을 본보기로 모두 처형한다.", next: "end_tyrant" },
                     { text: "부족한 식량을 채우기 위해 옆 부족을 약탈한다.", next: "end_savage" }
                 ]
@@ -387,6 +578,36 @@
             // ==========================================
             // 2. 삼국 시대 - 고구려
             // ==========================================
+            jumong_chase: {
+                type: 'history', badge: 'badge-goguryeo', era: "부여", year: "BC 37",
+                title: "주몽의 탈출",
+                desc: "부여의 왕자 대소와 그 형제들이 주몽의 뛰어난 재주를 시기하여 죽이려 합니다. 살기 어린 추격대가 바로 뒤까지 쫓아왔습니다. 어떻게 도망치시겠습니까?",
+                progress: 7, icon: "🐎",
+                choices: [
+                    { text: "앞을 가로막는 강(엄리대수)으로 달려가 하늘에 기도를 올린다.", next: "goguryeo_jumong", minigame: 'river_game' },
+                    { text: "사람들이 많은 마을로 숨어들어 몸을 피한다.", next: "crisis_village_hide" },
+                    { text: "추격대를 피해 험준한 산속 깊은 곳으로 도망친다.", next: "crisis_mountain_lost" }
+                ]
+            },
+            crisis_village_hide: {
+                type: 'crisis', badge: 'badge-crisis', title: "위기: 포위망",
+                desc: "마을에 숨었지만 부여군의 수색망이 좁혀오고 있습니다. 현상금이 걸려 있어 마을 사람들의 눈초리도 심상치 않습니다.",
+                choices: [
+                    { text: "위험을 무릅쓰고 포위망을 뚫고 강으로 달린다.", next: "goguryeo_jumong" }, // 회복
+                    { text: "마을 사람에게 돈을 주고 숨겨달라고 부탁한다.", next: "end_captured_buyeo" },
+                    { text: "순순히 잡혀가 오해를 풀려 한다.", next: "end_buyeo_sub" }
+                ]
+            },
+            crisis_mountain_lost: {
+                type: 'crisis', badge: 'badge-crisis', title: "위기: 막다른 길",
+                desc: "산속 깊이 들어왔지만 길은 끊기고 절벽이 앞을 가로막았습니다. 말도 지쳐 쓰러지기 직전입니다.",
+                choices: [
+                    { text: "말을 버리고 암벽을 타고 내려가 강 쪽으로 향한다.", next: "goguryeo_jumong" }, // 회복
+                    { text: "동굴을 찾아 숨어서 구조를 기다린다.", next: "end_mountain_lost" },
+                    { text: "추격대와 맞서 싸운다.", next: "end_bad_tactic" }
+                ]
+            },
+
             goguryeo_jumong: {
                 type: 'history', badge: 'badge-goguryeo', era: "고구려", year: "BC 37",
                 title: "새로운 나라의 건국",
@@ -688,7 +909,7 @@
                 desc: "세계 최강의 몽골 제국이 침략했습니다. 육지에서는 승산이 없어 조정은 강화도로 천도했습니다. 백성들은 유린당하고 있습니다. 우리는 어떻게 저항해야 합니까?",
                 progress: 46, icon: "☸️",
                 choices: [
-                    { text: "부처의 힘으로 국난을 극복하고자 팔만대장경을 만들고, 삼별초는 끝까지 항전한다.", next: "goryeo_gongmin" },
+                    { text: "부처의 힘으로 국난을 극복하고자 팔만대장경을 만들고, 삼별초는 끝까지 항전한다.", next: "goryeo_gongmin", minigame: 'defense_game' },
                     { text: "몽골에 즉시 항복하고 그들의 풍습(변발, 호복)을 모두 받아들인다.", next: "crisis_mongol_culture" },
                     { text: "몽골군과 연합하여 일본을 정벌하러 떠난다.", next: "crisis_japan_invasion" }
                 ]
@@ -1171,6 +1392,9 @@
             },
 
             // === 배드 엔딩들 (완전 실패) ===
+            end_captured_buyeo: { type: 'ending', title: "BAD END: 부여의 죄인", desc: "마을에 숨었다가 발각되어 부여군에게 잡혀갔습니다. 꿈은 여기서 끝났습니다.", choices: [{ text: "다시 도전", next: "start", style: "restart" }] },
+            end_mountain_lost: { type: 'ending', title: "BAD END: 산속의 미아", desc: "험한 산속에서 길을 잃고 헤매다 추위와 굶주림에 쓰러졌습니다.", choices: [{ text: "다시 도전", next: "start", style: "restart" }] },
+
             end_fail_founding: { type: 'ending', title: "BAD END: 건국 실패", desc: "고난을 이겨내지 못하고 나라를 세우는 것을 포기했습니다. 당신의 이름은 잊혀졌습니다.", choices: [{ text: "다시 도전", next: "start", style: "restart" }] },
             end_vassal_goguryeo: { type: 'ending', title: "BAD END: 고구려의 속국", desc: "자주성을 버리고 고구려의 지배를 받는 신세가 되었습니다.", choices: [{ text: "다시 도전", next: "start", style: "restart" }] },
             end_vassal_baekje: { type: 'ending', title: "BAD END: 백제의 깃발 아래", desc: "백제에게 패권을 넘겨주고 그들의 신하가 되었습니다.", choices: [{ text: "다시 도전", next: "start", style: "restart" }] },
@@ -1230,11 +1454,379 @@
         let mgScore = 0;
         let mgActive = false;
         let mgNextScene = "";
+        
+        // 치트 관련 변수
+        let cheatClicks = 0;
+        let cheatTimeout;
+
+        // 치트 이벤트 리스너 설정
+        document.addEventListener('DOMContentLoaded', () => {
+            const titleText = document.getElementById('mg-title-text');
+            if (titleText) {
+                titleText.addEventListener('click', () => {
+                    if (!mgActive) return;
+                    
+                    cheatClicks++;
+                    
+                    // 1초 안에 다음 클릭 없으면 초기화 (빠르게 클릭해야 함)
+                    clearTimeout(cheatTimeout);
+                    cheatTimeout = setTimeout(() => {
+                        cheatClicks = 0;
+                    }, 1000);
+
+                    if (cheatClicks >= 10) {
+                        // 치트 발동
+                        mgScore = 100;
+                        updateScore(0); // 점수 업데이트 및 종료 트리거
+                        cheatClicks = 0;
+                        showToast("⚡ 개발자 치트 발동: 인내심 MAX!");
+                    }
+                });
+            }
+        });
+
+        // --- 주몽 강 건너기 미니게임 변수 ---
+        let rgInterval;
+        let rgActive = false;
+        // 격자 시스템 (4행 12열)
+        const RG_ROWS = 4;
+        const RG_COLS = 12;
+        let jumongRow = 2; // 시작 행 (중앙)
+        let jumongCol = 0; // 시작 열
+        let riverGrid = []; // 현재 활성화된 아이템 상태 저장
+
+        // 키 입력 제어 변수
+        let lastKeyTime = 0;
+        const KEY_COOLDOWN = 200; // 200ms 쿨다운 (한 번 입력 후 다음 입력까지 대기시간)
+
+        // 아이템 제거 주기
+        const ITEM_REMOVE_INTERVAL = 1600; // 1.6초마다 아이템 하나씩 제거 (좀 더 느리게)
+
+        // --- 삼별초 방어전 미니게임 변수 ---
+        let defenseInterval;
+        let defenseActive = false;
+        let defenseCastleHP = 100;
+        let defenseScore = 0;
+        let defenseMongols = []; // 활성화된 몽골 목록
+        let defenseWave = 1;
+        let defenseSpawnRate = 2000; // 초기 스폰 간격 (2초)
+        let defenseMongolHP = 3; // 몽골 체력 (3으로 증가)
+        let defenseArrowCooldown = 0;
+        const DEFENSE_MAX_MONGOLS = 50; // 최대 몽골 수 대폭 증가
+        const DEFENSE_Y_LINES = [20]; // 화면 맨 아래쪽 한 줄만 (bottom 기준)
+
+        function startDefenseGame() {
+            console.log('Starting defense game...');
+            defenseActive = true;
+            defenseCastleHP = 100;
+            defenseScore = 0;
+            defenseMongols = [];
+            defenseWave = 1;
+            defenseSpawnRate = 800; // 스폰 속도 대폭 증가
+            defenseMongolHP = 3;
+
+            const gameWindow = document.getElementById('defense-game-window');
+            const resultEl = document.getElementById('defense-result');
+            const gameArea = document.getElementById('defense-game-area');
+            const proceedBtn = document.getElementById('defense-proceed-btn');
+            const achievementBtn = document.getElementById('defense-achievement-btn');
+
+            console.log('gameWindow element:', gameWindow);
+            console.log('gameWindow classList before:', gameWindow.classList.toString());
+
+            gameWindow.classList.remove('hidden');
+            gameWindow.style.display = 'flex'; // 명시적으로 표시
+            resultEl.classList.add('hidden');
+
+            console.log('gameWindow classList after:', gameWindow.classList.toString());
+            console.log('gameWindow display style:', getComputedStyle(gameWindow).display);
+
+            updateDefenseUI();
+
+            // 기존 몽골 제거
+            const oldMongols = gameArea.querySelectorAll('.defense-mongol');
+            oldMongols.forEach(el => el.remove());
+
+            // 진행 버튼 이벤트 재등록
+            const newProceedBtn = proceedBtn.cloneNode(true);
+            proceedBtn.parentNode.replaceChild(newProceedBtn, proceedBtn);
+
+            newProceedBtn.addEventListener('click', () => {
+                document.getElementById('defense-game-window').classList.add('hidden');
+                renderScene(mgNextScene);
+            });
+
+            // 업적 버튼 이벤트 재등록
+            const newAchievementBtn = achievementBtn.cloneNode(true);
+            achievementBtn.parentNode.replaceChild(newAchievementBtn, achievementBtn);
+
+            newAchievementBtn.addEventListener('click', () => {
+                showTitles(); // 기존 업적 시스템 사용
+            });
+
+            // 화살 발사 이벤트 등록 (화면 클릭/터치)
+            gameArea.addEventListener('click', handleDefenseClick);
+            gameArea.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                handleDefenseClick(e.touches[0]);
+            }, { passive: false });
+
+            // 몽골 스폰 시작
+            defenseInterval = setInterval(spawnMongol, defenseSpawnRate);
+
+            // 게임 루프 (몽골 이동)
+            setInterval(updateDefenseGame, 50);
+        }
+
+        function spawnMongol() {
+            if (!defenseActive || defenseMongols.length >= DEFENSE_MAX_MONGOLS) return;
+
+            const gameArea = document.getElementById('defense-game-area');
+
+            // 화면 맨 아래 라인 한 줄에서만 생성
+            const yPos = DEFENSE_Y_LINES[0];
+
+            const mongol = document.createElement('div');
+            mongol.className = 'defense-mongol absolute cursor-pointer';
+            mongol.style.right = '-144px'; // 오른쪽 끝에서 시작 (3배 크기 고려)
+            mongol.style.bottom = `${yPos}px`;
+            mongol.style.width = '144px'; // 48 * 3 = 144px
+            mongol.style.height = '144px'; // 48 * 3 = 144px
+
+            // 몽골 이미지
+            const mongolImg = document.createElement('img');
+            mongolImg.src = 'mongol.png';
+            mongolImg.className = 'w-full h-full object-contain';
+            mongol.appendChild(mongolImg);
+
+            // HP 표시
+            const hpDisplay = document.createElement('div');
+            hpDisplay.className = 'absolute top-0 right-0 bg-red-600 text-white text-xs px-1 rounded';
+            hpDisplay.textContent = defenseMongolHP;
+            mongol.appendChild(hpDisplay);
+
+            // 몽골 데이터
+            const gameRect = gameArea.getBoundingClientRect();
+
+            const mongolData = {
+                element: mongol,
+                imgElement: mongolImg,
+                hpDisplay: hpDisplay,
+                x: gameRect.width + 200, // 화면 오른쪽 밖에서 시작
+                y: yPos,
+                hp: defenseMongolHP,
+                speed: (1.0 + Math.random() * 0.5) * 12 // 현재보다 3배 더 빠르게
+            };
+
+            defenseMongols.push(mongolData);
+            mongol.style.left = mongolData.x + 'px';
+            gameArea.appendChild(mongol);
+
+            // 몽골 클릭 이벤트 (직접 클릭으로 타격)
+            mongol.addEventListener('click', (e) => {
+                e.stopPropagation();
+                damageMongol(mongolData);
+            });
+        }
+
+        function updateDefenseGame() {
+            if (!defenseActive) return;
+
+            defenseMongols.forEach((mongol, index) => {
+                // 이미 성에 도착한 몽골은 이동하지 않고 지속 데미지
+                if (mongol.reachedCastle) {
+                    if (!mongol.lastDamageTime || Date.now() - mongol.lastDamageTime >= 1000) {
+                        damageCastle();
+                        mongol.lastDamageTime = Date.now();
+                    }
+                    return;
+                }
+
+                // 왼쪽으로 이동
+                mongol.x -= mongol.speed;
+                mongol.element.style.left = mongol.x + 'px';
+
+                // 성 위치 계산
+                const gameArea = document.getElementById('defense-game-area');
+                const castle = document.getElementById('defense-castle');
+                const gameRect = gameArea.getBoundingClientRect();
+                const castleRect = castle.getBoundingClientRect();
+                const castleLeft = castleRect.left - gameRect.left;
+                const castleRight = castleLeft + castleRect.width;
+
+                // 성에 도달했는지 체크
+                if (mongol.x <= castleRight) {
+                    // 성에 도착 - 멈추고 지속 데미지 시작
+                    mongol.reachedCastle = true;
+                    mongol.x = castleRight;
+                    mongol.element.style.left = mongol.x + 'px';
+                    mongol.element.style.animation = 'none'; // 이동 애니메이션 중지
+                    return;
+                }
+
+                // 화면 왼쪽으로 나갔는지 체크 (성에 닿지 못한 경우)
+                if (mongol.x < -200) {
+                    removeMongol(index);
+                }
+            });
+        }
+
+        function handleDefenseClick(event) {
+            if (!defenseActive || defenseArrowCooldown > 0) return;
+
+            defenseArrowCooldown = 10; // 쿨다운 (0.5초)
+
+            // 클릭한 몽골 찾기
+            const gameArea = document.getElementById('defense-game-area');
+            const rect = gameArea.getBoundingClientRect();
+            const clickX = event.clientX - rect.left;
+            const clickY = event.clientY - rect.top;
+
+            // 클릭한 위치에 몽골이 있는지 찾기
+            let targetMongol = null;
+            for (const mongol of defenseMongols) {
+                const mongolRect = mongol.element.getBoundingClientRect();
+                const gameRect = gameArea.getBoundingClientRect();
+
+                const relativeLeft = mongolRect.left - gameRect.left;
+                const relativeRight = mongolRect.right - gameRect.left;
+                const relativeTop = mongolRect.top - gameRect.top;
+                const relativeBottom = mongolRect.bottom - gameRect.top;
+
+                if (clickX >= relativeLeft && clickX <= relativeRight &&
+                    clickY >= relativeTop && clickY <= relativeBottom) {
+                    targetMongol = mongol;
+                    break;
+                }
+            }
+
+            if (!targetMongol) return; // 몽골을 클릭하지 않음
+
+            // 성 위쪽에서 화살 발사
+            const castle = document.getElementById('defense-castle');
+            const castleRect = castle.getBoundingClientRect();
+            const gameRect = gameArea.getBoundingClientRect();
+
+            const startX = castleRect.left - gameRect.left + castleRect.width / 2; // 성 중앙
+            const startY = castleRect.top - gameRect.top - 20; // 성 위쪽
+
+            const targetX = targetMongol.x - 72; // 몽골 중심
+            const targetY = targetMongol.y + 72; // 몽골 아래쪽
+
+            // 화살 이미지 생성
+            const arrow = document.createElement('img');
+            arrow.src = 'arrow.png';
+            arrow.className = 'absolute w-12 h-8 pointer-events-none z-10';
+            arrow.style.left = startX + 'px';
+            arrow.style.top = startY + 'px';
+
+            gameArea.appendChild(arrow);
+
+            // 화살 회전 계산 (항상 오른쪽으로 발사)
+            arrow.style.transform = 'rotate(0deg)';
+
+            // 화살 애니메이션 (수평으로 날아감)
+            const distance = targetX - startX;
+            const duration = Math.max(Math.abs(distance) / 6, 200); // 속도 조정
+
+            arrow.animate([
+                { left: startX + 'px' },
+                { left: targetX + 'px' }
+            ], {
+                duration: duration,
+                easing: 'linear',
+                fill: 'forwards'
+            });
+
+            // 화살이 목표에 도달하면 몽골 데미지
+            setTimeout(() => {
+                if (targetMongol && !targetMongol.element.removed) {
+                    damageMongol(targetMongol);
+                }
+                if (arrow.parentNode) {
+                    arrow.remove();
+                }
+            }, duration);
+
+            // 쿨다운 감소
+            const cooldownInterval = setInterval(() => {
+                defenseArrowCooldown--;
+                if (defenseArrowCooldown <= 0) {
+                    clearInterval(cooldownInterval);
+                }
+            }, 50);
+        }
+
+        function damageMongol(mongol) {
+            mongol.hp--;
+            mongol.hpDisplay.textContent = mongol.hp; // HP 표시 업데이트
+
+            if (mongol.hp <= 0) {
+                // 몽골 제거
+                defenseScore++;
+                updateDefenseUI();
+                removeMongol(defenseMongols.indexOf(mongol));
+            } else {
+                // 피격 효과
+                mongol.imgElement.style.filter = 'brightness(0.5)';
+                setTimeout(() => mongol.imgElement.style.filter = 'brightness(1)', 200);
+            }
+        }
+
+        function damageCastle() {
+            defenseCastleHP -= 3; // 지속 데미지로 줄임
+            updateDefenseUI();
+
+            // 성 피격 효과
+            const castle = document.getElementById('defense-castle');
+            castle.style.opacity = '0.7';
+            setTimeout(() => castle.style.opacity = '1', 500);
+
+            // HP가 0이 되면 게임 종료
+            if (defenseCastleHP <= 0) {
+                endDefenseGame();
+            }
+        }
+
+        function removeMongol(index) {
+            if (index >= 0 && index < defenseMongols.length) {
+                const mongol = defenseMongols[index];
+                mongol.element.remove();
+                defenseMongols.splice(index, 1);
+            }
+        }
+
+        function updateDefenseUI() {
+            document.getElementById('defense-castle-hp').textContent = defenseCastleHP;
+            document.getElementById('defense-score').textContent = defenseScore;
+        }
+
+        function endDefenseGame() {
+            defenseActive = false;
+            clearInterval(defenseInterval);
+
+            const resultEl = document.getElementById('defense-result');
+            resultEl.classList.remove('hidden');
+
+            // 이벤트 리스너 제거
+            const gameArea = document.getElementById('defense-game-area');
+            gameArea.removeEventListener('click', handleDefenseClick);
+            gameArea.removeEventListener('touchstart', handleDefenseClick);
+        }
 
         function startMinigame(gameType, nextScene) {
-            if (gameType !== 'bear_game') return;
-
             mgNextScene = nextScene;
+
+            if (gameType === 'bear_game') {
+                startBearGame();
+            } else if (gameType === 'river_game') {
+                startRiverGame();
+            } else if (gameType === 'defense_game') {
+                startDefenseGame();
+            }
+        }
+
+        function startBearGame() {
             mgScore = 0;
             mgActive = true;
 
@@ -1242,15 +1834,332 @@
             const scoreEl = document.getElementById('mg-score');
             const resultEl = document.getElementById('mg-result');
             const gameArea = document.getElementById('mg-game-area');
+            const proceedBtn = document.getElementById('mg-proceed-btn');
 
             overlay.style.display = 'block';
             resultEl.classList.add('hidden');
             scoreEl.textContent = '0';
             gameArea.innerHTML = ''; // 기존 아이템 제거
+            
+            // 기존 이벤트 리스너 제거 (중복 방지)
+            const newProceedBtn = proceedBtn.cloneNode(true);
+            proceedBtn.parentNode.replaceChild(newProceedBtn, proceedBtn);
+            
+            newProceedBtn.addEventListener('click', () => {
+                document.getElementById('minigame-overlay').style.display = 'none';
+                renderScene(mgNextScene);
+            });
 
             // 게임 루프 시작 (0.4초마다 생성)
             mgInterval = setInterval(spawnItem, 400);
         }
+
+        function startRiverGame() {
+            rgActive = true;
+            jumongCol = 0;
+            jumongRow = Math.floor(RG_ROWS / 2);
+            riverGrid = [];
+
+            const overlay = document.getElementById('river-game-overlay');
+            const resultEl = document.getElementById('rg-result');
+            const gameArea = document.getElementById('rg-game-area');
+            const jumongChar = document.getElementById('jumong-char');
+            const proceedBtn = document.getElementById('rg-proceed-btn');
+
+            overlay.style.display = 'block';
+            resultEl.classList.add('hidden');
+            document.getElementById('rg-failure').classList.add('hidden');
+            
+            updateJumongPos();
+            
+            // 기존 아이템 제거 (주몽 제외)
+            const oldItems = gameArea.querySelectorAll('.river-item');
+            oldItems.forEach(el => el.remove());
+
+            // 진행 버튼 이벤트 재등록
+            const newProceedBtn = proceedBtn.cloneNode(true);
+            proceedBtn.parentNode.replaceChild(newProceedBtn, proceedBtn);
+
+            newProceedBtn.addEventListener('click', () => {
+                document.getElementById('river-game-overlay').style.display = 'none';
+                renderScene(mgNextScene);
+            });
+
+            // 초기 아이템 생성: 가운데 2줄만 채우기 (윗줄과 아랫줄은 빈 상태로 유지)
+            for (let r = 1; r < RG_ROWS - 1; r++) { // 행 1과 2만 채움 (윗줄 0, 아랫줄 3 제외)
+                for (let c = 0; c < RG_COLS; c++) {
+                    spawnSingleItem(r, c, gameArea);
+                }
+            }
+
+            // 아이템 제거 타이머 (2초마다 랜덤하게 하나씩 제거)
+            rgInterval = setInterval(removeRandomItem, ITEM_REMOVE_INTERVAL);
+            
+            // 키보드 이벤트 등록
+            window.addEventListener('keydown', handleRgKeydown);
+            
+            // 가상 키패드 이벤트 등록 (한 번 터치/클릭할 때마다 한 번만 이동)
+            document.querySelectorAll('.v-btn').forEach(btn => {
+                btn.addEventListener('touchstart', (e) => {
+                    e.preventDefault();
+                    const currentTime = Date.now();
+                    if (currentTime - lastKeyTime >= KEY_COOLDOWN) {
+                        lastKeyTime = currentTime;
+                        handleRgMove(btn.dataset.dir);
+                    }
+                }, { passive: false });
+
+                btn.addEventListener('mousedown', (e) => {
+                    e.preventDefault();
+                    const currentTime = Date.now();
+                    if (currentTime - lastKeyTime >= KEY_COOLDOWN) {
+                        lastKeyTime = currentTime;
+                        handleRgMove(btn.dataset.dir);
+                    }
+                });
+            });
+        }
+
+        function stopRiverGame() {
+            rgActive = false;
+            clearInterval(rgInterval);
+            window.removeEventListener('keydown', handleRgKeydown);
+        }
+
+        function handleRgKeydown(e) {
+            if (!rgActive) return;
+
+            const currentTime = Date.now();
+            if (currentTime - lastKeyTime < KEY_COOLDOWN) return; // 쿨다운 중이면 무시
+
+            let direction = null;
+            if (e.key === 'ArrowUp') direction = 'up';
+            else if (e.key === 'ArrowDown') direction = 'down';
+            else if (e.key === 'ArrowLeft') direction = 'left';
+            else if (e.key === 'ArrowRight') direction = 'right';
+
+            if (direction) {
+                lastKeyTime = currentTime;
+                handleRgMove(direction);
+            }
+        }
+
+        function handleRgMove(dir) {
+            let nextRow = jumongRow;
+            let nextCol = jumongCol;
+
+            if (dir === 'up') nextRow--;
+            if (dir === 'down') nextRow++;
+            if (dir === 'left') nextCol--;
+            if (dir === 'right') nextCol++;
+
+            // 격자 범위 체크
+            if (nextRow < 0 || nextRow >= RG_ROWS) return;
+            if (nextCol < 0) return; // 왼쪽으로는 못 나감
+
+            // 오른쪽 끝 도달 (승리)
+            if (nextCol >= RG_COLS) {
+                endRiverGame(true);
+                return;
+            }
+
+            // 이동하려는 칸에 아이템이 있는지 확인
+            const item = riverGrid.find(i => i.r === nextRow && i.c === nextCol);
+
+            if (item) {
+                // 안전하게 이동
+                jumongRow = nextRow;
+                jumongCol = nextCol;
+                updateJumongPos();
+
+                // 이동 후 게임 오버 체크
+                setTimeout(() => checkGameOver(), 100);
+            } else {
+                // 물에 빠짐
+                resetJumong();
+                // 실패 시에도 게임 오버 체크
+                setTimeout(() => checkGameOver(), 100);
+            }
+        }
+
+        // 게임 오버 체크 함수
+        function checkGameOver() {
+            // 이동 가능한 방향이 있는지 체크
+            const directions = [
+                { r: jumongRow - 1, c: jumongCol }, // 위
+                { r: jumongRow + 1, c: jumongCol }, // 아래
+                { r: jumongRow, c: jumongCol + 1 }  // 오른쪽 (주요 이동 방향)
+            ];
+
+            let canMove = false;
+
+            // 오른쪽 끝 도달 가능한지 먼저 체크
+            if (jumongCol >= RG_COLS - 1) {
+                // 이미 끝에 가까이 왔음 - 성공으로 처리
+                endRiverGame(true);
+                return;
+            }
+
+            for (const dir of directions) {
+                // 범위 체크
+                if (dir.r < 0 || dir.r >= RG_ROWS) continue;
+                if (dir.c < 0) continue;
+                if (dir.c >= RG_COLS) {
+                    canMove = true; // 오른쪽 끝 도달 가능
+                    break;
+                }
+
+                // 해당 위치에 아이템이 있는지 체크
+                const item = riverGrid.find(i => i.r === dir.r && i.c === dir.c);
+                if (item) {
+                    canMove = true;
+                    break;
+                }
+            }
+
+            if (!canMove && riverGrid.length <= 2) {
+                // 이동할 수 없고 아이템도 거의 없음 - 게임 오버
+                endRiverGame(false);
+            }
+        }
+
+        function updateJumongPos() {
+            const jumongChar = document.getElementById('jumong-char');
+            // 격자 좌표를 %로 변환
+            // 열: 6개 -> 16.66% 씩. 중앙 정렬을 위해 약간 조정.
+            // 행: 4개 -> 25% 씩.
+            const x = (jumongCol * (100 / RG_COLS)) + (50 / RG_COLS); // 열의 중앙
+            const y = (jumongRow * (100 / RG_ROWS)) + (50 / RG_ROWS); // 행의 중앙
+            
+            // 주몽 크기(60px) 고려해서 중앙 배치 (transform이 -50% -50% 되어있다고 가정)
+            // CSS에서 transform: translateY(-50%)만 되어있으므로 left도 조정 필요
+            // CSS 수정 대신 left, top을 중앙값으로 주고 transform을 translate(-50%, -50%)로 변경하는 게 좋음
+            // 일단 현재 CSS: transform: translateY(-50%); left: %; top: %;
+            // 가로 중앙 정렬을 위해 JS에서 오프셋 조정하거나 CSS 변경.
+            // 여기서는 간단히 계산된 % 사용.
+            
+            jumongChar.style.left = `calc(${x}% - 30px)`; // 30px는 width의 절반
+            jumongChar.style.top = `${y}%`; 
+        }
+
+
+        function spawnSingleItem(r, c, gameArea) {
+             const items = ['fish.png', 'Terrapin.png'];
+            const src = items[Math.floor(Math.random() * items.length)];
+
+            const img = document.createElement('img');
+            img.src = src;
+            img.className = 'river-item';
+
+            // 위치 계산
+            const x = (c * (100 / RG_COLS)) + (50 / RG_COLS);
+            const y = (r * (100 / RG_ROWS)) + (50 / RG_ROWS);
+
+            img.style.left = `calc(${x}% - 105px)`;
+            img.style.top = `calc(${y}% - 75px)`;
+
+            gameArea.appendChild(img);
+
+            const itemObj = { r, c, el: img };
+            riverGrid.push(itemObj);
+
+            // 초기 생성된 아이템들도 랜덤 시간 후 사라지게 함 (좀 더 느리게)
+            const randomDuration = 4000 + Math.random() * 4000; // 4-8초 랜덤
+            setTimeout(() => {
+                if (!rgActive) return;
+
+                if (jumongRow === r && jumongCol === c) {
+                    resetJumong();
+                }
+
+                riverGrid = riverGrid.filter(i => i !== itemObj);
+
+                if (img.parentNode) {
+                    img.style.opacity = '0';
+                    setTimeout(() => img.remove(), 500);
+                }
+            }, randomDuration);
+        }
+
+        // 랜덤하게 아이템 하나 제거
+        function removeRandomItem() {
+            if (!rgActive || riverGrid.length === 0) return;
+
+            // 현재 주몽이 밟고 있는 아이템은 제거하지 않음 (안전장치)
+            const safeItems = riverGrid.filter(item => !(item.r === jumongRow && item.c === jumongCol));
+
+            if (safeItems.length === 0) return;
+
+            // 랜덤하게 하나 선택해서 제거
+            const randomIndex = Math.floor(Math.random() * safeItems.length);
+            const itemToRemove = safeItems[randomIndex];
+
+            // 배열에서 제거
+            riverGrid = riverGrid.filter(i => i !== itemToRemove);
+
+            // DOM에서 제거
+            if (itemToRemove.el.parentNode) {
+                itemToRemove.el.style.opacity = '0';
+                setTimeout(() => itemToRemove.el.remove(), 500);
+            }
+
+            // 아이템 제거 후 게임 오버 체크
+            setTimeout(() => checkGameOver(), 100);
+        }
+
+        function resetJumong() {
+            // 효과: 깜빡임 + 위치 초기화
+            const jumongChar = document.getElementById('jumong-char');
+            jumongChar.style.transition = 'none';
+            jumongChar.style.opacity = '0';
+            
+            setTimeout(() => {
+                jumongCol = 0;
+                jumongRow = Math.floor(RG_ROWS / 2);
+                updateJumongPos();
+                
+                jumongChar.style.opacity = '1';
+                setTimeout(() => jumongChar.style.transition = 'all 0.3s ease-out', 50);
+            }, 300);
+        }
+
+        function endRiverGame(success) {
+            stopRiverGame();
+
+            if (success) {
+                const resultEl = document.getElementById('rg-result');
+                resultEl.classList.remove('hidden');
+            } else {
+                // 실패 케이스
+                const failureEl = document.getElementById('rg-failure');
+                failureEl.classList.remove('hidden');
+            }
+        }
+
+        // 웅녀 게임 진행 버튼
+        document.getElementById('mg-proceed-btn').addEventListener('click', () => {
+            document.getElementById('minigame-overlay').style.display = 'none';
+            renderScene(mgNextScene);
+        });
+
+        // 주몽 게임 진행 버튼
+        document.getElementById('rg-proceed-btn').addEventListener('click', () => {
+            document.getElementById('river-game-overlay').style.display = 'none';
+            renderScene(mgNextScene);
+        });
+
+        // 주몽 게임 다시 시작 버튼
+        document.getElementById('rg-restart-btn').addEventListener('click', () => {
+            document.getElementById('river-game-overlay').style.display = 'none';
+            // 게임 시작 화면으로 돌아감
+            renderScene('start');
+        });
+
+        // 방어전 게임 진행 버튼
+        document.getElementById('defense-proceed-btn').addEventListener('click', () => {
+            document.getElementById('defense-game-overlay').style.display = 'none';
+            renderScene(mgNextScene);
+        });
 
         function spawnItem() {
             if (!mgActive) return;
@@ -1398,7 +2307,7 @@
 
             choicesToRender.forEach(choice => {
                 const btn = document.createElement('button');
-                let btnClass = "w-full py-4 px-6 rounded-lg font-bold text-lg text-left mb-3 btn-card break-keep";
+                let btnClass = "w-full py-4 px-6 rounded-lg font-bold text-lg text-left mb-3 btn-card break-keep min-h-[80px] flex items-center";
                 
                 if (choice.style === 'restart') btnClass += " btn-special";
 
@@ -1406,15 +2315,17 @@
                 btn.textContent = choice.text;
                 
                 // 선택지 클릭 시 칭호 해금 (선택지에 unlock 속성이 있는 경우)
-                btn.onclick = () => {
+                btn.addEventListener('click', () => {
+                    console.log('Choice clicked:', choice.text, 'minigame:', choice.minigame);
                     if (choice.unlock) unlockTitle(choice.unlock);
-                    
+
                     if (choice.minigame) {
+                        console.log('Starting minigame:', choice.minigame);
                         startMinigame(choice.minigame, choice.next);
                     } else {
                         renderScene(choice.next);
                     }
-                };
+                });
                 
                 choicesDiv.appendChild(btn);
             });
