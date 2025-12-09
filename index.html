@@ -136,6 +136,12 @@
             user-select: none;
             touch-action: manipulation; 
         }
+        @media (max-width: 768px) {
+            .falling-item {
+                width: 60px;
+                height: 60px;
+            }
+        }
         @keyframes fall {
             from { top: -100px; transform: rotate(0deg); }
             to { top: 110vh; transform: rotate(360deg); }
@@ -157,7 +163,7 @@
 </head>
 <body class="flex flex-col items-center justify-center min-h-screen p-2 md:p-4 gap-4">
     <!-- 웅녀 미니게임 오버레이 -->
-    <div id="minigame-overlay">
+    <div id="minigame-overlay" style="touch-action: none;">
         <!-- 점수판 -->
         <div class="absolute top-4 left-4 bg-black/60 text-white p-4 rounded-lg z-10 border border-white/30 backdrop-blur-sm">
             <div class="text-3xl font-bold mb-2 text-yellow-400">인내심: <span id="mg-score">0</span> / 100</div>
@@ -256,7 +262,7 @@
     <div id="toast" class="toast">칭호 획득!</div>
 
     <div class="text-xs text-stone-400 opacity-70 mt-2 font-sans select-none">
-        역사의 선택: 광복을 향해서 made by gamtudyssam 0.001
+        역사의 선택: 광복을 향해서 made by gamtudyssam 0.002
     </div>
 
     <script>
@@ -1263,8 +1269,9 @@
             img.src = itemData.src;
             img.className = 'falling-item';
             
-            // 랜덤 위치
-            const x = Math.random() * (window.innerWidth - 80);
+            // 랜덤 위치 (화면 너비 고려)
+            const itemWidth = window.innerWidth < 768 ? 60 : 80;
+            const x = Math.random() * (window.innerWidth - itemWidth);
             img.style.left = `${x}px`;
             
             // 랜덤 속도
