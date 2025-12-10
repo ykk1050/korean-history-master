@@ -137,6 +137,155 @@
             z-index: 9999; /* 최상위 레이어 */
         }
 
+        /* 흥선대원군 미니게임 (척화비 땅따먹기) */
+        #heung-game-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.9);
+            z-index: 500;
+            touch-action: none;
+        }
+        .heung-wrapper {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+        #heung-game-area {
+            position: absolute;
+            inset: 0;
+            background-image: url('Monument.png');
+            background-size: contain; /* 원본 비율 유지, 잘림 방지 */
+            background-repeat: no-repeat;
+            background-position: center;
+            background-color: black;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .heung-tile {
+            position: absolute;
+            background: rgba(0,0,0,0.85);
+            pointer-events: none;
+            transition: opacity 0.2s;
+        }
+        #heung-player {
+            position: absolute;
+            width: 96px;
+            height: 96px;
+            object-fit: contain;
+            z-index: 5;
+            filter: drop-shadow(0 0 6px #fff);
+            transition: transform 0.1s;
+        }
+        .heung-ship {
+            position: absolute;
+            width: 140px;
+            height: 140px;
+            object-fit: contain;
+            z-index: 4;
+            filter: drop-shadow(0 0 8px #1f2937);
+        }
+        .heung-hud {
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 10;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            text-align: center;
+        }
+        .heung-hearts {
+            display: flex;
+            gap: 6px;
+            font-size: 22px;
+            color: #f87171;
+        }
+        .heung-progress {
+            min-width: 240px;
+            background: rgba(0,0,0,0.4);
+            border: 1px solid rgba(255,255,255,0.3);
+            border-radius: 999px;
+            overflow: hidden;
+        }
+        .heung-progress-bar {
+            height: 14px;
+            width: 0%;
+            background: linear-gradient(90deg, #fbbf24, #22d3ee, #34d399);
+            transition: width 0.2s;
+        }
+        .heung-virtual-controls {
+            position: absolute;
+            bottom: 24px;
+            right: 24px;
+            display: grid;
+            grid-template-columns: repeat(3, 64px);
+            grid-template-rows: repeat(2, 64px);
+            gap: 10px;
+            z-index: 12;
+        }
+        .heung-vbtn {
+            width: 64px;
+            height: 64px;
+            background: rgba(255,255,255,0.25);
+            border: 2px solid rgba(255,255,255,0.4);
+            border-radius: 16px;
+            color: white;
+            font-size: 22px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            user-select: none;
+            backdrop-filter: blur(4px);
+        }
+        .heung-vbtn:active {
+            background: rgba(255,255,255,0.45);
+        }
+        .heung-vup { grid-column: 2; grid-row: 1; }
+        .heung-vleft { grid-column: 1; grid-row: 2; }
+        .heung-vdown { grid-column: 2; grid-row: 2; }
+        .heung-vright { grid-column: 3; grid-row: 2; }
+        @media (min-width: 1024px) {
+            .heung-virtual-controls { display: none; }
+        }
+        #heung-result, #heung-fail {
+            position: absolute;
+            inset: 0;
+            background: rgba(0,0,0,0.86);
+            z-index: 20;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            color: white;
+            text-align: center;
+            padding: 20px;
+            gap: 14px;
+        }
+        #heung-result h2, #heung-fail h2 {
+            font-size: clamp(28px, 4vw, 44px);
+            font-weight: 800;
+            color: #fbbf24;
+        }
+        #heung-fail h2 { color: #f87171; }
+        .heung-btn {
+            padding: 14px 24px;
+            border-radius: 14px;
+            font-weight: 800;
+            color: #fff;
+            border: 2px solid rgba(255,255,255,0.3);
+            background: linear-gradient(90deg, #2563eb, #22d3ee);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.35);
+        }
+        .heung-btn.fail {
+            background: linear-gradient(90deg, #ef4444, #f97316);
+        }
+
         #river-game-overlay {
             display: none;
             position: fixed;
@@ -249,6 +398,168 @@
             0% { opacity: 1; transform: translateY(0); }
             100% { opacity: 0; transform: translateY(-50px); }
         }
+
+        /* 탕평책 미니게임 스타일 */
+        #faction-game-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background-color: rgba(0, 0, 0, 0.85);
+            z-index: 450;
+            touch-action: none;
+        }
+        #faction-game-overlay .bg-layer {
+            position: absolute;
+            inset: 0;
+            background-image: url('indoor.png');
+            background-size: cover;
+            background-position: center;
+            opacity: 0.55;
+        }
+        .faction-wrapper {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            gap: 12px;
+            color: #fff;
+        }
+        .faction-topbar {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            pointer-events: none;
+            text-align: center;
+        }
+        .faction-gauge {
+            width: min(560px, 90vw);
+            height: 14px;
+            background: rgba(255,255,255,0.12);
+            border-radius: 999px;
+            overflow: hidden;
+            border: 1px solid rgba(255,255,255,0.22);
+        }
+        .faction-gauge-bar {
+            height: 100%;
+            width: 50%;
+            background: linear-gradient(90deg, #60a5fa, #fcd34d, #f472b6);
+            transition: width 0.3s ease;
+        }
+        .faction-status {
+            display: flex;
+            gap: 12px;
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        .faction-board {
+            flex: 1;
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 14px;
+        }
+        .faction-column {
+            position: relative;
+            background: rgba(0, 0, 0, 0.35);
+            border: 1px solid rgba(255,255,255,0.12);
+            border-radius: 16px;
+            padding: 14px;
+            backdrop-filter: blur(4px);
+            overflow: hidden;
+        }
+        .faction-column h3 {
+            text-align: center;
+            font-weight: 800;
+            letter-spacing: 1px;
+            font-size: 24px;
+            margin-bottom: 8px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.4);
+        }
+        .faction-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            grid-template-rows: repeat(4, 1fr);
+            gap: 6px;
+            width: 100%;
+            height: calc(100% - 40px);
+            min-height: 620px; /* 캐릭터 2배 확대에 맞춰 높이 확보 */
+        }
+        .faction-cell {
+            position: relative;
+            background: rgba(0,0,0,0.15);
+            border: 1px dashed rgba(255,255,255,0.12);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+        .faction-figure {
+            width: 144px;  /* 2배 확대 */
+            height: 144px; /* 2배 확대 */
+            object-fit: contain;
+            animation: float 2s ease-in-out infinite;
+            pointer-events: none;
+        }
+        .faction-controls {
+            position: relative;
+            z-index: 2;
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .faction-btn {
+            padding: 14px 20px;
+            border-radius: 12px;
+            font-weight: 800;
+            color: #fff;
+            border: 2px solid rgba(255,255,255,0.3);
+            background: rgba(0,0,0,0.35);
+            backdrop-filter: blur(4px);
+            min-width: 140px;
+            transition: transform 0.15s ease, background 0.2s ease;
+        }
+        .faction-btn:active {
+            transform: scale(0.97);
+            background: rgba(255,255,255,0.12);
+        }
+        .faction-result {
+            position: absolute;
+            inset: 0;
+            background: rgba(0,0,0,0.8);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            text-align: center;
+            padding: 20px;
+            gap: 16px;
+        }
+        .faction-result h2 {
+            font-size: clamp(28px, 4vw, 42px);
+            font-weight: 800;
+            color: #fbbf24;
+            text-shadow: 0 3px 8px rgba(0,0,0,0.5);
+        }
+        .faction-result p {
+            font-size: clamp(16px, 2.6vw, 22px);
+            line-height: 1.6;
+            color: #f5f5f5;
+        }
+        @media (max-width: 900px) {
+            .faction-board {
+                grid-template-columns: 1fr;
+                grid-template-rows: repeat(2, 1fr);
+            }
+            .faction-grid {
+                height: 240px;
+            }
+        }
     </style>
 </head>
 <body class="flex flex-col items-center justify-center min-h-screen p-2 md:p-4 gap-4">
@@ -329,6 +640,101 @@
             <button id="rg-restart-btn" class="px-10 py-5 bg-red-600 hover:bg-red-500 text-white rounded-full text-2xl font-bold transition transform hover:scale-105 shadow-xl border-4 border-red-400">
                 처음부터 다시 시작 🔄
             </button>
+        </div>
+    </div>
+
+    <!-- 탕평책 균형 미니게임 오버레이 -->
+    <div id="faction-game-overlay">
+        <div class="bg-layer"></div>
+        <div class="faction-wrapper">
+            <div class="faction-topbar">
+                <div class="text-xl md:text-2xl font-extrabold drop-shadow">탕평책: 당파 균형을 맞추세요</div>
+                <div class="faction-gauge">
+                    <div id="faction-balance-bar" class="faction-gauge-bar" style="width: 50%;"></div>
+                </div>
+                <div class="faction-status">
+                    <span>균형 유지 시간: <span id="faction-balance-time">0</span> / 60초</span>
+                </div>
+            </div>
+
+            <div class="faction-board">
+                <div class="faction-column">
+                    <h3>노론</h3>
+                    <div id="noron-grid" class="faction-grid"></div>
+                </div>
+                <div class="faction-column">
+                    <h3>소론</h3>
+                    <div id="soron-grid" class="faction-grid"></div>
+                </div>
+            </div>
+
+            <div class="faction-controls">
+                <button id="noron-btn" class="faction-btn bg-amber-600/60 hover:bg-amber-500/60">노론 버튼</button>
+                <button id="soron-btn" class="faction-btn bg-blue-600/60 hover:bg-blue-500/60">소론 버튼</button>
+            </div>
+
+            <div id="faction-result" class="faction-result">
+                <h2>🎉 균형 달성!</h2>
+                <p>여러 당파의 신하들의 숫자가 고르게 분배되었습니다.<br>
+                탕평책이 효과를 발휘하여 조선이 더 나은 나라가 됩니다!</p>
+                <button id="faction-proceed-btn" class="px-8 py-4 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl border border-white/30 shadow-xl">진행하기 ▶</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 흥선대원군 척화비 미니게임 오버레이 -->
+    <div id="heung-game-overlay">
+        <div class="heung-wrapper">
+            <div class="heung-hud">
+                <div class="font-bold text-lg text-white drop-shadow">척화비를 완성하라!</div>
+                <div class="heung-hearts" id="heung-hearts">❤️❤️❤️</div>
+                <div class="heung-progress">
+                    <div id="heung-progress-bar" class="heung-progress-bar"></div>
+                </div>
+                <div class="text-sm text-amber-200 drop-shadow">Monuument를 90% 이상 드러내세요</div>
+            </div>
+
+            <div id="heung-game-area">
+                <canvas id="heung-mask" class="absolute inset-0 w-full h-full"></canvas>
+            </div>
+
+            <!-- 가상 키패드 -->
+            <div class="heung-virtual-controls">
+                <div class="heung-vbtn heung-vup" data-dir="up">▲</div>
+                <div class="heung-vbtn heung-vleft" data-dir="left">◀</div>
+                <div class="heung-vbtn heung-vdown" data-dir="down">▼</div>
+                <div class="heung-vbtn heung-vright" data-dir="right">▶</div>
+            </div>
+
+            <!-- 성공 -->
+            <div id="heung-result">
+                <h2>척화비 완성! 🎉</h2>
+                <p class="text-lg leading-relaxed">
+                    척화비가 완성되어 조선의 모든 백성들이<br>
+                    서양 세력을 막고자 하는 대원군의 뜻을 알게 되었습니다!<br><br>
+                    앞으로 조선의 운명은?
+                </p>
+                <button id="heung-proceed-btn" class="heung-btn">진행하기 ▶</button>
+            </div>
+
+            <!-- 실패 -->
+            <div id="heung-fail">
+                <h2>목숨을 모두 잃었습니다…</h2>
+                <p class="text-lg leading-relaxed">
+                    이양선에 맞서다 쓰러졌습니다.<br>
+                    다시 시작하여 개국: 하늘의 뜻을 잇다부터 선택하세요.
+                </p>
+                <button id="heung-restart-btn" class="heung-btn fail">처음으로 돌아가기 🔄</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 올바른 선택 결과 오버레이 -->
+    <div id="choice-result-overlay" class="hidden fixed inset-0 bg-black/80 z-[12000] flex items-center justify-center p-6">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-xl w-full p-6 space-y-4 text-center">
+            <h2 id="choice-result-title" class="text-2xl font-extrabold text-stone-800"></h2>
+            <p id="choice-result-desc" class="text-stone-700 leading-relaxed"></p>
+            <button id="choice-result-proceed" class="px-6 py-3 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-500">진행하기 ▶</button>
         </div>
     </div>
 
@@ -453,7 +859,7 @@
     </div>
 
     <div class="text-xs text-stone-400 opacity-70 mt-2 font-sans select-none">
-        역사의 선택: 광복을 향해서 made by gamtudyssam 0.003
+        역사의 선택: 광복을 향해서 made by gamtudyssam 0.004
     </div>
 
     <script>
@@ -548,7 +954,12 @@
                 type: 'crisis', badge: 'badge-crisis', title: "위기: 덜 된 인간",
                 desc: "인내와 고난의 과정 없이 겉모습만 사람이 된 그들은 인간의 도리를 모릅니다. 욕심을 부리고 난폭하게 날뛰며 세상을 어지럽히고 있습니다.",
                 choices: [
-                    { text: "엄격한 금기를 만들어 그들에게 인내심과 도덕을 다시 가르친다.", next: "gojoseon_law" }, // 회복
+                    { 
+                        text: "엄격한 금기를 만들어 그들에게 인내심과 도덕을 다시 가르친다.", 
+                        next: "gojoseon_law",
+                        resultTitle: "선택 결과: 금기로 다시 태어난 백성",
+                        resultDesc: "금기와 수행을 거친 끝에 그들은 비로소 사람다운 도리를 깨닫고, 고조선 건국을 함께할 동반자가 되었습니다. 인내와 규율이 흩어진 무리를 하나의 공동체로 묶었습니다."
+                    }, // 회복
                     { text: "실패작이라 여기고 모두 죽여 없앤다.", next: "end_savage" },
                     { text: "그들을 풀어주어 세상에 혼란을 야기한다.", next: "end_myth_fail" }
                 ]
@@ -560,7 +971,12 @@
                 desc: "농경이 발달하고 청동기 문화를 바탕으로 고조선 사회는 점점 커지고 복잡해졌습니다. 사람들의 재산을 보호하고 사회 질서를 바로잡기 위해서는 강력한 사회적 합의가 필요합니다.",
                 progress: 5, icon: "⚖️",
                 choices: [
-                    { text: "생명과 사유 재산을 중시하는 8개의 법(8조법)을 만든다.", next: "jumong_chase" },
+                    { 
+                        text: "생명과 사유 재산을 중시하는 8개의 법(8조법)을 만든다.", 
+                        next: "jumong_chase",
+                        resultTitle: "선택 결과: 8조법 제정",
+                        resultDesc: "살인·상해·절도를 무겁게 다스리고, 사유 재산과 생명을 보호하는 8조법이 선포되었습니다. 고조선은 질서와 재산권을 갖춘 국가로 자리잡아 후대 법 전통의 기틀을 닦았습니다."
+                    },
                     { text: "모든 것은 공동 소유로 하고 개인의 재산을 금지한다.", next: "crisis_commune" },
                     { text: "힘센 자가 모든 것을 가지는 약육강식의 법을 만든다.", next: "end_savage" }
                 ]
@@ -1081,7 +1497,7 @@
                 desc: "신하들이 동인, 서인, 노론, 소론으로 나뉘어 권력 다툼(붕당 정치)을 하느라 민생은 뒷전입니다. 영조와 정조는 이 고질적인 병폐를 고치려 합니다.",
                 progress: 75, icon: "🏛️",
                 choices: [
-                    { text: "어느 한 쪽에 치우치지 않고 인재를 고루 등용하는 탕평책을 쓴다.", next: "joseon_jeongjo" },
+                    { text: "어느 한 쪽에 치우치지 않고 인재를 고루 등용하는 탕평책을 쓴다.", next: "joseon_jeongjo", minigame: 'faction_balance_game' },
                     { text: "나를 지지하는 특정 붕당의 편만 든다.", next: "crisis_faction" },
                     { text: "골치 아픈 정치는 신하들에게 맡기고 포기한다.", next: "crisis_weak_governance" }
                 ]
@@ -1166,7 +1582,7 @@
                 desc: "모양도 이상한 서양 배(이양선)가 해안가에 나타나 통상을 요구합니다. 그들은 무력을 앞세워 위협하고 있습니다. 흥선대원군은 선택의 기로에 섰습니다.",
                 progress: 80, icon: "🔒",
                 choices: [
-                    { text: "서양 오랑캐와 화친하는 것은 매국이다. 척화비를 세우고 거부한다.", next: "modern_gapsin" },
+                    { text: "서양 오랑캐와 화친하는 것은 매국이다. 척화비를 세우고 거부한다.", next: "modern_gapsin", minigame: 'heung_game' },
                     { text: "대세는 개항이다. 즉시 문호를 개방한다.", next: "crisis_early_colonization" },
                     { text: "청나라에 나라를 바치고 보호를 요청한다.", next: "end_qing_province" }
                 ]
@@ -1514,6 +1930,62 @@
         let defenseArrowCooldown = 0;
         const DEFENSE_MAX_MONGOLS = 50; // 최대 몽골 수 대폭 증가
         const DEFENSE_Y_LINES = [20]; // 화면 맨 아래쪽 한 줄만 (bottom 기준)
+        let defenseMoveInterval; // 이동 루프 클리어용
+        // 방어전 진행 버튼 재바인딩 유틸
+        function bindDefenseProceedBtn() {
+            const btn = document.getElementById('defense-proceed-btn');
+            if (!btn) return;
+            const newBtn = btn.cloneNode(true);
+            btn.parentNode.replaceChild(newBtn, btn);
+            newBtn.addEventListener('click', () => {
+                const win = document.getElementById('defense-game-window');
+                if (win) {
+                    win.classList.add('hidden');
+                    win.style.display = 'none';
+                }
+                // mgNextScene가 비어 있을 때를 대비한 안전장치
+                renderScene(mgNextScene || 'start');
+            });
+        }
+
+        // --- 탕평책 균형 미니게임 변수 ---
+        const FACTION_ROWS = 4;
+        const FACTION_COLS = 5;
+        const FACTION_TOLERANCE = 3; // 허용 가능한 인원 차이 (차이 3 이하 누적)
+        const FACTION_TARGET = 60; // 60초 유지 목표
+        let factionActive = false;
+        let factionSpawnInterval;
+        let factionBalanceInterval;
+        let noronProb = 0.55;
+        let soronProb = 0.55;
+        let factionBalanceTime = 0;
+        let factionTimeouts = [];
+
+        // --- 흥선대원군 척화비 미니게임 변수 ---
+        const HG_ROWS = 36;
+        const HG_COLS = 64; // Monument 비율을 유지하기 위한 16:9 격자
+        const HG_SIDE = Math.min(HG_ROWS, HG_COLS); // 정사각형 영역 한 변
+        const HG_SQ_START_R = Math.floor((HG_ROWS - HG_SIDE) / 2);
+        const HG_SQ_START_C = Math.floor((HG_COLS - HG_SIDE) / 2);
+        const HG_TOTAL_SQUARE = HG_SIDE * HG_SIDE; // 90% 기준 면적
+        const HG_GOAL = 80; // % 필요 오픈율 (정사각 기준, 80%로 완화)
+        const HG_COOLDOWN = 90; // ms
+        let hgActive = false;
+        let hgLives = 3;
+        let hgPlayer = { r: HG_SQ_START_R, c: Math.floor(HG_SQ_START_C + HG_SIDE / 2), dir: null, drawing: false };
+        let hgRespawnPos = { r: HG_SQ_START_R, c: Math.floor(HG_SQ_START_C + HG_SIDE / 2) };
+        let hgShips = [];
+        let hgShipInterval;
+        let hgLastMove = 0;
+        let hgCellW = 10, hgCellH = 10;
+        let hgGrid = []; // 0: 미개방, 1: 확보(개방), 2: 그리는 중 라인
+        let hgTrail = [];
+        let hgCapturedCount = 0;
+        let hgTotalTiles = HG_ROWS * HG_COLS;
+        let hgCapturedSquareCount = 0;
+        let hgLoop;
+        let hgSparxPos = 0; // 경계 적 위치(둘레 기준)
+        let hgStartedDrawing = false; // 첫 선을 그리기 시작했는지
 
         function startDefenseGame() {
             console.log('Starting defense game...');
@@ -1548,13 +2020,7 @@
             oldMongols.forEach(el => el.remove());
 
             // 진행 버튼 이벤트 재등록
-            const newProceedBtn = proceedBtn.cloneNode(true);
-            proceedBtn.parentNode.replaceChild(newProceedBtn, proceedBtn);
-
-            newProceedBtn.addEventListener('click', () => {
-                document.getElementById('defense-game-window').classList.add('hidden');
-                renderScene(mgNextScene);
-            });
+            bindDefenseProceedBtn();
 
             // 업적 버튼 이벤트 재등록
             const newAchievementBtn = achievementBtn.cloneNode(true);
@@ -1575,7 +2041,7 @@
             defenseInterval = setInterval(spawnMongol, defenseSpawnRate);
 
             // 게임 루프 (몽골 이동)
-            setInterval(updateDefenseGame, 50);
+            defenseMoveInterval = setInterval(updateDefenseGame, 50);
         }
 
         function spawnMongol() {
@@ -1627,6 +2093,11 @@
                 e.stopPropagation();
                 damageMongol(mongolData);
             });
+            mongol.addEventListener('touchstart', (e) => {
+                e.stopPropagation();
+                e.preventDefault();
+                damageMongol(mongolData);
+            }, { passive: false });
         }
 
         function updateDefenseGame() {
@@ -1804,9 +2275,11 @@
         function endDefenseGame() {
             defenseActive = false;
             clearInterval(defenseInterval);
+            clearInterval(defenseMoveInterval);
 
             const resultEl = document.getElementById('defense-result');
             resultEl.classList.remove('hidden');
+            resultEl.style.display = 'flex';
 
             // 이벤트 리스너 제거
             const gameArea = document.getElementById('defense-game-area');
@@ -1823,8 +2296,719 @@
                 startRiverGame();
             } else if (gameType === 'defense_game') {
                 startDefenseGame();
+            } else if (gameType === 'faction_balance_game') {
+                startFactionGame();
+            } else if (gameType === 'heung_game') {
+                startHeungGame();
             }
         }
+
+        // --- 탕평책 균형 미니게임 로직 ---
+        function startFactionGame() {
+            stopFactionGame(); // 혹시 남아있는 타이머 초기화
+
+            factionActive = true;
+            factionBalanceTime = 0;
+            noronProb = 0.55;
+            soronProb = 0.55;
+
+            const overlay = document.getElementById('faction-game-overlay');
+            const resultEl = document.getElementById('faction-result');
+            const proceedBtn = document.getElementById('faction-proceed-btn');
+            const noronBtn = document.getElementById('noron-btn');
+            const soronBtn = document.getElementById('soron-btn');
+
+            overlay.style.display = 'block';
+            resultEl.style.display = 'none';
+
+            buildFactionGrid();
+            spawnInitialFactionMembers();
+            updateFactionGauge();
+
+            // 버튼 이벤트 재등록 (중복 방지)
+            const newNoronBtn = noronBtn.cloneNode(true);
+            noronBtn.parentNode.replaceChild(newNoronBtn, noronBtn);
+            newNoronBtn.addEventListener('click', () => adjustFactionProb('noron'));
+
+            const newSoronBtn = soronBtn.cloneNode(true);
+            soronBtn.parentNode.replaceChild(newSoronBtn, soronBtn);
+            newSoronBtn.addEventListener('click', () => adjustFactionProb('soron'));
+
+            const newProceedBtn = proceedBtn.cloneNode(true);
+            proceedBtn.parentNode.replaceChild(newProceedBtn, proceedBtn);
+            newProceedBtn.addEventListener('click', () => {
+                document.getElementById('faction-game-overlay').style.display = 'none';
+                renderScene(mgNextScene);
+            });
+
+            // 정기 스폰 & 균형 체크
+            factionSpawnInterval = setInterval(() => {
+                spawnFactionSide('noron');
+                spawnFactionSide('soron');
+            }, 1200);
+
+            factionBalanceInterval = setInterval(checkFactionBalance, 1000);
+        }
+
+        function stopFactionGame() {
+            factionActive = false;
+            clearInterval(factionSpawnInterval);
+            clearInterval(factionBalanceInterval);
+            factionTimeouts.forEach(id => clearTimeout(id));
+            factionTimeouts = [];
+        }
+
+        function buildFactionGrid() {
+            const noronGrid = document.getElementById('noron-grid');
+            const soronGrid = document.getElementById('soron-grid');
+
+            [noronGrid, soronGrid].forEach(grid => {
+                grid.innerHTML = '';
+                for (let i = 0; i < FACTION_ROWS * FACTION_COLS; i++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'faction-cell';
+                    grid.appendChild(cell);
+                }
+            });
+        }
+
+        function spawnInitialFactionMembers() {
+            for (let i = 0; i < 3; i++) {
+                spawnFactionSide('noron', true);
+                spawnFactionSide('soron', true);
+            }
+        }
+
+        function spawnFactionSide(side, force = false) {
+            if (!factionActive) return;
+
+            const prob = side === 'noron' ? noronProb : soronProb;
+            if (!force && Math.random() > prob) return;
+
+            const grid = side === 'noron' ? document.getElementById('noron-grid') : document.getElementById('soron-grid');
+            const cells = Array.from(grid.querySelectorAll('.faction-cell'));
+            let emptyCells = cells.filter(cell => cell.children.length === 0);
+
+            if (emptyCells.length === 0 && cells.length > 0) {
+                const firstFigure = grid.querySelector('.faction-figure');
+                if (firstFigure) firstFigure.remove();
+                emptyCells = cells.filter(cell => cell.children.length === 0);
+            }
+
+            if (emptyCells.length === 0) return;
+
+            const spawnCount = Math.min(emptyCells.length, Math.random() < 0.5 ? 1 : 2);
+
+            for (let i = 0; i < spawnCount; i++) {
+                const idx = Math.floor(Math.random() * emptyCells.length);
+                const cell = emptyCells.splice(idx, 1)[0];
+                if (!cell) continue;
+
+                const img = document.createElement('img');
+                img.src = side === 'noron' ? 'noron.png' : 'soron.png';
+                img.className = 'faction-figure';
+                cell.appendChild(img);
+
+                const lifetime = 5500 + Math.random() * 2500; // 5.5~8초 유지
+                const timeoutId = setTimeout(() => {
+                    if (!factionActive) return;
+                    if (img.parentNode) img.remove();
+                    updateFactionGauge();
+                }, lifetime);
+                factionTimeouts.push(timeoutId);
+            }
+
+            updateFactionGauge();
+        }
+
+        function adjustFactionProb(side) {
+            if (!factionActive) return;
+
+            if (side === 'noron') {
+                noronProb = Math.min(noronProb + 0.15, 0.95);
+                soronProb = Math.max(soronProb - 0.05, 0.30);
+            } else {
+                soronProb = Math.min(soronProb + 0.15, 0.95);
+                noronProb = Math.max(noronProb - 0.05, 0.30);
+            }
+
+            // 클릭 시 즉시 스폰하여 반응성을 높임
+            spawnFactionSide(side, true);
+            updateFactionGauge();
+        }
+
+        function getFactionCounts() {
+            const noronCount = document.querySelectorAll('#noron-grid .faction-figure').length;
+            const soronCount = document.querySelectorAll('#soron-grid .faction-figure').length;
+            return { noronCount, soronCount };
+        }
+
+        function updateFactionGauge() {
+            const { noronCount, soronCount } = getFactionCounts();
+            const total = Math.max(noronCount + soronCount, 1);
+            const diff = Math.abs(noronCount - soronCount);
+            const balanceRatio = Math.max(0, 1 - diff / total);
+
+            document.getElementById('faction-balance-time').textContent = Math.min(factionBalanceTime, FACTION_TARGET);
+            document.getElementById('faction-balance-bar').style.width = `${Math.round(balanceRatio * 100)}%`;
+        }
+
+        function checkFactionBalance() {
+            if (!factionActive) return;
+
+            const { noronCount, soronCount } = getFactionCounts();
+            const diff = Math.abs(noronCount - soronCount);
+
+            if (diff <= FACTION_TOLERANCE) {
+                // 누적 합산 (연속 유지가 아니라 총 60초 모으면 성공)
+                factionBalanceTime++;
+            }
+
+            updateFactionGauge();
+
+            if (factionBalanceTime >= FACTION_TARGET) {
+                endFactionGame();
+            }
+        }
+
+        function endFactionGame() {
+            stopFactionGame();
+            const resultEl = document.getElementById('faction-result');
+            resultEl.style.display = 'flex';
+        }
+
+        // --- 흥선대원군 척화비 미니게임 (Qix 스타일) ---
+        function startHeungGame() {
+            stopHeungGame();
+            hgActive = true;
+            hgLives = 3;
+            hgPlayer = { r: HG_SQ_START_R, c: Math.floor(HG_SQ_START_C + HG_SIDE / 2), dir: null, drawing: false };
+            hgRespawnPos = { ...hgPlayer };
+            hgShips = [];
+            hgTrail = [];
+            hgSparxPos = 0;
+            hgStartedDrawing = false;
+            hgCapturedSquareCount = 0;
+
+            const overlay = document.getElementById('heung-game-overlay');
+            const resultEl = document.getElementById('heung-result');
+            const failEl = document.getElementById('heung-fail');
+            const area = document.getElementById('heung-game-area');
+            const mask = document.getElementById('heung-mask');
+
+            overlay.style.display = 'block';
+            resultEl.style.display = 'none';
+            failEl.style.display = 'none';
+
+            // 캔버스/셀 크기 설정 (배율에 맞춰 Monument 비율 유지)
+            const rect = area.getBoundingClientRect();
+            mask.width = rect.width;
+            mask.height = rect.height;
+            hgCellW = rect.width / HG_COLS;
+            hgCellH = rect.height / HG_ROWS;
+
+            initHeungGrid();
+            placeHeungPlayer();
+            spawnHeungShip();
+
+            updateHeungHearts();
+            renderHeungMask();
+            updateHeungProgressBar();
+
+            window.addEventListener('keydown', handleHeungKey);
+            window.addEventListener('keyup', handleHeungKeyUp);
+            document.querySelectorAll('.heung-vbtn').forEach(btn => {
+                const dir = btn.dataset.dir;
+                ['touchstart', 'mousedown'].forEach(ev => {
+                    btn.addEventListener(ev, e => {
+                        e.preventDefault();
+                        hgPlayer.dir = dir;
+                    });
+                });
+                ['touchend', 'mouseup', 'mouseleave'].forEach(ev => {
+                    btn.addEventListener(ev, () => {
+                        hgPlayer.dir = null;
+                    });
+                });
+            });
+
+            hgLoop = setInterval(heungTick, 40);
+        }
+
+        function stopHeungGame() {
+            hgActive = false;
+            clearInterval(hgLoop);
+            clearInterval(hgShipInterval);
+            window.removeEventListener('keydown', handleHeungKey);
+            window.removeEventListener('keyup', handleHeungKeyUp);
+        }
+
+        function initHeungGrid() {
+            hgGrid = Array.from({ length: HG_ROWS }, () => Array(HG_COLS).fill(0));
+            // 외곽을 확보 영역으로 설정 (플레이어가 움직일 수 있는 벽)
+            for (let r = 0; r < HG_ROWS; r++) {
+                hgGrid[r][0] = 1;
+                hgGrid[r][HG_COLS - 1] = 1;
+            }
+            for (let c = 0; c < HG_COLS; c++) {
+                hgGrid[0][c] = 1;
+                hgGrid[HG_ROWS - 1][c] = 1;
+            }
+            hgCapturedCount = (HG_ROWS * 2 + (HG_COLS - 2) * 2); // 테두리 확보량
+            hgCapturedSquareCount = recalcHeungSquareCaptured(); // 정사각 기준 확보량
+        }
+
+        function placeHeungPlayer() {
+            const player = document.getElementById('heung-player');
+            if (!player) {
+                const img = document.createElement('img');
+                img.id = 'heung-player';
+                img.src = 'heung.png';
+                img.className = 'absolute z-10';
+            document.getElementById('heung-game-area').appendChild(img);
+            }
+            const p = document.getElementById('heung-player');
+            p.style.width = `${hgCellW * 1.2}px`;
+            p.style.height = `${hgCellH * 1.2}px`;
+            updateHeungPlayerPos();
+        }
+
+        function spawnHeungShip() {
+            const shipImg = document.createElement('img');
+            shipImg.src = 'Western ship.png';
+            shipImg.className = 'heung-ship';
+            document.getElementById('heung-game-area').appendChild(shipImg);
+
+            const shipData = {
+                el: shipImg,
+                x: (HG_SQ_START_C + HG_SIDE * 0.5) * hgCellW,
+                y: (HG_SQ_START_R + HG_SIDE * 0.5) * hgCellH,
+                vx: (Math.random() > 0.5 ? 1 : -1) * (hgCellW * 0.35),
+                vy: (Math.random() > 0.5 ? 1 : -1) * (hgCellH * 0.35)
+            };
+            hgShips = [shipData];
+        }
+
+        function handleHeungKey(e) {
+            if (!hgActive) return;
+            if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
+                e.preventDefault();
+                const map = { ArrowUp: 'up', ArrowDown: 'down', ArrowLeft: 'left', ArrowRight: 'right' };
+                hgPlayer.dir = map[e.key];
+            }
+        }
+
+        function handleHeungKeyUp(e) {
+            if (!hgActive) return;
+            if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
+                hgPlayer.dir = null;
+            }
+        }
+
+        function heungTick() {
+            if (!hgActive) return;
+            moveHeungPlayer();
+            moveHeungShipsQix();
+            moveHeungSparx();
+            renderHeungMask();
+            updateHeungProgressBar();
+        }
+
+        function isWithinSquare(r, c) {
+            return r >= HG_SQ_START_R && r < HG_SQ_START_R + HG_SIDE && c >= HG_SQ_START_C && c < HG_SQ_START_C + HG_SIDE;
+        }
+
+        function isPerimeterCell(r, c) {
+            if (hgGrid[r][c] !== 1) return false;
+            const dirs = [[1,0],[-1,0],[0,1],[0,-1]];
+            for (const [dr, dc] of dirs) {
+                const nr = r + dr, nc = c + dc;
+                if (!isWithinSquare(nr, nc)) continue;
+                if (hgGrid[nr][nc] === 0) return true;
+            }
+            return false;
+        }
+
+        function moveHeungPlayer() {
+            if (!hgPlayer.dir) return;
+            const now = Date.now();
+            if (now - hgLastMove < HG_COOLDOWN) return;
+            hgLastMove = now;
+
+            const delta = { up: [-1, 0], down: [1, 0], left: [0, -1], right: [0, 1] }[hgPlayer.dir];
+            const nr = hgPlayer.r + delta[0];
+            const nc = hgPlayer.c + delta[1];
+            if (!isWithinSquare(nr, nc)) return;
+
+            const inTrail = hgGrid[nr][nc] === 2;
+            const inSafe = hgGrid[nr][nc] === 1;
+            const wasDrawing = hgPlayer.drawing;
+
+            // 이동 가능성 체크: 개방된 내부(1)라도 외곽이 아니면 이동 불가
+            if (!hgPlayer.drawing && hgGrid[nr][nc] === 1 && !isPerimeterCell(nr, nc)) return;
+            if (hgPlayer.drawing && hgGrid[nr][nc] === 1 && !isPerimeterCell(nr, nc) && !inSafe) return;
+
+            // 그리기 시작 (외곽에서 미개방으로 진입)
+            if (!hgPlayer.drawing && hgGrid[hgPlayer.r][hgPlayer.c] === 1 && isPerimeterCell(hgPlayer.r, hgPlayer.c) && hgGrid[nr][nc] === 0) {
+                hgPlayer.drawing = true;
+                hgStartedDrawing = true;
+                hgTrail = [];
+            }
+
+            // 이동
+            hgPlayer.r = nr;
+            hgPlayer.c = nc;
+
+            // 그리는 중일 때 선 기록
+            if (hgPlayer.drawing) {
+                if (hgGrid[nr][nc] === 0) {
+                    hgGrid[nr][nc] = 2;
+                    hgTrail.push([nr, nc]);
+                } else if (inTrail) {
+                    // 자기 선과 충돌 -> 실패
+                    loseHeungLife();
+                    return;
+                }
+            }
+
+            updateHeungPlayerPos();
+            // 안전 구간일 때 마지막 안전 위치로 저장 (리스폰용)
+            if (!hgPlayer.drawing) {
+                hgRespawnPos = { r: hgPlayer.r, c: hgPlayer.c };
+            }
+
+            // 안전지대 도착 시 영역 확정
+            if (hgPlayer.drawing && inSafe) {
+                finalizeHeungTrail();
+            }
+
+            // 적과 충돌 체크
+            checkHeungLineCollision();
+            checkHeungPlayerCollision();
+        }
+
+        function moveHeungShipsQix() {
+            const minX = HG_SQ_START_C * hgCellW;
+            const maxX = (HG_SQ_START_C + HG_SIDE - 1) * hgCellW;
+            const minY = HG_SQ_START_R * hgCellH;
+            const maxY = (HG_SQ_START_R + HG_SIDE - 1) * hgCellH;
+            const minVx = hgCellW * 0.25;
+            const minVy = hgCellH * 0.25;
+
+            hgShips.forEach(ship => {
+                const w = ship.el.clientWidth || 140;
+                const h = ship.el.clientHeight || 140;
+
+                ship.x += ship.vx;
+                ship.y += ship.vy;
+
+                // 경계 클램프 (이미지 크기 고려)
+                const minXEdge = minX;
+                const maxXEdge = maxX - w;
+                const minYEdge = minY;
+                const maxYEdge = maxY - h;
+
+                if (ship.x < minXEdge) {
+                    ship.x = minXEdge + 1;
+                    ship.vx = Math.max(Math.abs(ship.vx), minVx);
+                }
+                if (ship.x > maxXEdge) {
+                    ship.x = maxXEdge - 1;
+                    ship.vx = -Math.max(Math.abs(ship.vx), minVx);
+                }
+                if (ship.y < minYEdge) {
+                    ship.y = minYEdge + 1;
+                    ship.vy = Math.max(Math.abs(ship.vy), minVy);
+                }
+                if (ship.y > maxYEdge) {
+                    ship.y = maxYEdge - 1;
+                    ship.vy = -Math.max(Math.abs(ship.vy), minVy);
+                }
+
+                // 중앙좌표 기준 충돌
+                const gridX = (ship.x + w / 2) / hgCellW;
+                const gridY = (ship.y + h / 2) / hgCellH;
+
+                const gx = Math.floor(gridX);
+                const gy = Math.floor(gridY);
+                if (gy>=0 && gy<HG_ROWS && gx>=0 && gx<HG_COLS && hgGrid[gy][gx] === 1) {
+                    // 반사 + 한 걸음 되돌리기 (벽 안쪽으로)
+                    ship.vx = -(Math.max(Math.abs(ship.vx), minVx)) * Math.sign(ship.vx || 1);
+                    ship.vy = -(Math.max(Math.abs(ship.vy), minVy)) * Math.sign(ship.vy || 1);
+                    ship.x += ship.vx * 2;
+                    ship.y += ship.vy * 2;
+                    // 다시 한 번 경계 클램프
+                    ship.x = Math.min(Math.max(ship.x, minXEdge), maxXEdge);
+                    ship.y = Math.min(Math.max(ship.y, minYEdge), maxYEdge);
+                }
+
+                ship.el.style.left = `${ship.x}px`;
+                ship.el.style.top = `${ship.y}px`;
+            });
+
+            checkHeungLineCollision();
+            checkHeungPlayerCollision();
+        }
+
+        function moveHeungSparx() {
+            // 첫 선을 그리기 전에는 Sparx 피해 없음
+            if (!hgStartedDrawing) return;
+            // 경계를 따라 움직이는 적
+            const perimeter = 2 * (HG_COLS + HG_ROWS - 2);
+            const speed = 0.8;
+            hgSparxPos = (hgSparxPos + speed) % perimeter;
+            const pos = convertPerimeterToRC(hgSparxPos);
+            const playerOnBoundary = (hgPlayer.r === pos.r && hgPlayer.c === pos.c && !hgPlayer.drawing);
+            if (playerOnBoundary) {
+                loseHeungLife();
+            }
+        }
+
+        function convertPerimeterToRC(t) {
+            const topLen = HG_COLS - 1;
+            const rightLen = HG_ROWS - 1;
+            const bottomLen = HG_COLS - 1;
+            // top
+            if (t < topLen) return { r: 0, c: Math.floor(t) };
+            t -= topLen;
+            // right
+            if (t < rightLen) return { r: Math.floor(t), c: HG_COLS - 1 };
+            t -= rightLen;
+            // bottom
+            if (t < bottomLen) return { r: HG_ROWS - 1, c: HG_COLS - 1 - Math.floor(t) };
+            t -= bottomLen;
+            // left
+            return { r: HG_ROWS - 1 - Math.floor(t), c: 0 };
+        }
+
+        function finalizeHeungTrail() {
+            hgPlayer.drawing = false;
+            // 선을 확보 영역으로 변경
+            hgTrail.forEach(([r, c]) => hgGrid[r][c] = 1);
+
+            // 적이 닿을 수 있는 영역을 flood fill 후, 닿지 않는 영역 확보
+            const reachable = Array.from({ length: HG_ROWS }, () => Array(HG_COLS).fill(false));
+            const q = [];
+            hgShips.forEach(ship => {
+                const seed = findNearestEmpty(Math.min(HG_ROWS - 1, Math.max(0, Math.floor((ship.y + (ship.el.clientHeight||0)/2) / hgCellH))),
+                                             Math.min(HG_COLS - 1, Math.max(0, Math.floor((ship.x + (ship.el.clientWidth||0)/2) / hgCellW))));
+                q.push([seed.r, seed.c]);
+                reachable[seed.r][seed.c] = true;
+            });
+            const dirs = [[1,0],[-1,0],[0,1],[0,-1]];
+            while (q.length) {
+                const [r,c] = q.shift();
+                for (const [dr,dc] of dirs) {
+                    const nr = r + dr, nc = c + dc;
+                    if (nr<0||nr>=HG_ROWS||nc<0||nc>=HG_COLS) continue;
+                    if (reachable[nr][nc]) continue;
+                    if (hgGrid[nr][nc] === 1) continue;
+                    reachable[nr][nc] = true;
+                    q.push([nr,nc]);
+                }
+            }
+            // 닿지 않는 빈 영역을 확보
+            for (let r = 0; r < HG_ROWS; r++) {
+                for (let c = 0; c < HG_COLS; c++) {
+                    if (hgGrid[r][c] === 0 && !reachable[r][c]) {
+                        hgGrid[r][c] = 1;
+                        hgCapturedCount++;
+                    }
+                }
+            }
+            // 선도 포함
+            hgCapturedCount += hgTrail.length;
+            hgTrail = [];
+            renderHeungMask();
+            hgCapturedSquareCount = recalcHeungSquareCaptured();
+        }
+
+        function findNearestEmpty(r, c) {
+            if (hgGrid[r][c] !== 1) return { r, c };
+            const visited = Array.from({ length: HG_ROWS }, () => Array(HG_COLS).fill(false));
+            const q = [[r, c]];
+            visited[r][c] = true;
+            const dirs = [[1,0],[-1,0],[0,1],[0,-1]];
+            while (q.length) {
+                const [cr, cc] = q.shift();
+                for (const [dr, dc] of dirs) {
+                    const nr = cr + dr, nc = cc + dc;
+                    if (nr<0 || nr>=HG_ROWS || nc<0 || nc>=HG_COLS) continue;
+                    if (visited[nr][nc]) continue;
+                    visited[nr][nc] = true;
+                    if (hgGrid[nr][nc] !== 1) return { r: nr, c: nc };
+                    q.push([nr, nc]);
+                }
+            }
+            return { r, c };
+        }
+
+        function checkHeungLineCollision() {
+            // 선을 그릴 때만 선 충돌 판정
+            if (!hgPlayer.drawing) return;
+            for (const ship of hgShips) {
+                const gx = Math.floor((ship.x + (ship.el.clientWidth||0)/2) / hgCellW);
+                const gy = Math.floor((ship.y + (ship.el.clientHeight||0)/2) / hgCellH);
+                if (gy>=0 && gy<HG_ROWS && gx>=0 && gx<HG_COLS) {
+                    if (hgGrid[gy][gx] === 2) {
+                        loseHeungLife();
+                        return;
+                    }
+                }
+            }
+        }
+
+        function checkHeungPlayerCollision() {
+            // 선을 그리기 전(안전지대)에는 목숨 감소 없음
+            if (!hgPlayer.drawing) return;
+            const pRect = document.getElementById('heung-player').getBoundingClientRect();
+            for (const ship of hgShips) {
+                const sRect = ship.el.getBoundingClientRect();
+                // 히트박스를 더 줄여 오검출 방지
+                const inset = 18;
+                const p = {
+                    left: pRect.left + inset,
+                    right: pRect.right - inset,
+                    top: pRect.top + inset,
+                    bottom: pRect.bottom - inset
+                };
+                const s = {
+                    left: sRect.left + inset,
+                    right: sRect.right - inset,
+                    top: sRect.top + inset,
+                    bottom: sRect.bottom - inset
+                };
+                const overlap = !(p.right < s.left || p.left > s.right || p.bottom < s.top || p.top > s.bottom);
+                if (overlap) {
+                    loseHeungLife();
+                    return;
+                }
+            }
+        }
+
+        function loseHeungLife() {
+            hgLives--;
+            updateHeungHearts();
+            // 선 제거 (미완성)
+            for (let r = 0; r < HG_ROWS; r++) {
+                for (let c = 0; c < HG_COLS; c++) {
+                    if (hgGrid[r][c] === 2) hgGrid[r][c] = 0;
+                }
+            }
+            hgTrail = [];
+            // 마지막 위치(혹은 가장 가까운 외곽)로 리스폰
+            const nearestPerimeter = findNearestPerimeter(hgRespawnPos.r, hgRespawnPos.c);
+            hgPlayer = { r: nearestPerimeter.r, c: nearestPerimeter.c, dir: null, drawing: false };
+            hgStartedDrawing = false;
+            updateHeungPlayerPos();
+            renderHeungMask();
+
+            if (hgLives <= 0) {
+                endHeungGame(false);
+            }
+        }
+
+        function findNearestPerimeter(r, c) {
+            // BFS로 가장 가까운 정사각 내부의 perimeter(외곽 확보 셀) 탐색
+            const visited = Array.from({ length: HG_ROWS }, () => Array(HG_COLS).fill(false));
+            const q = [];
+            const clampInSquare = (rr, cc) => ({
+                r: Math.min(HG_SQ_START_R + HG_SIDE - 1, Math.max(HG_SQ_START_R, rr)),
+                c: Math.min(HG_SQ_START_C + HG_SIDE - 1, Math.max(HG_SQ_START_C, cc)),
+            });
+            const start = clampInSquare(r, c);
+            q.push([start.r, start.c]);
+            visited[start.r][start.c] = true;
+            const dirs = [[1,0],[-1,0],[0,1],[0,-1]];
+            while (q.length) {
+                const [cr, cc] = q.shift();
+                if (isWithinSquare(cr, cc) && hgGrid[cr][cc] === 1 && isPerimeterCell(cr, cc)) {
+                    return { r: cr, c: cc };
+                }
+                for (const [dr, dc] of dirs) {
+                    const nr = cr + dr, nc = cc + dc;
+                    if (!isWithinSquare(nr, nc)) continue;
+                    if (visited[nr][nc]) continue;
+                    visited[nr][nc] = true;
+                    q.push([nr, nc]);
+                }
+            }
+            // fallback: 정사각 내부 시작점 중앙
+            return { r: HG_SQ_START_R, c: Math.floor(HG_SQ_START_C + HG_SIDE / 2) };
+        }
+
+        function updateHeungHearts() {
+            const hearts = document.getElementById('heung-hearts');
+            hearts.textContent = '❤️'.repeat(Math.max(0, hgLives)) + '🤍'.repeat(Math.max(0, 3 - hgLives));
+        }
+
+        function renderHeungMask() {
+            const canvas = document.getElementById('heung-mask');
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            ctx.fillStyle = 'rgba(0,0,0,1)'; // 완전 가림
+            for (let r = 0; r < HG_ROWS; r++) {
+                for (let c = 0; c < HG_COLS; c++) {
+                    if (hgGrid[r][c] === 0) {
+                        ctx.fillRect(c * hgCellW, r * hgCellH, hgCellW + 1, hgCellH + 1);
+                    }
+                }
+            }
+            // 그리는 선
+            ctx.fillStyle = 'rgba(59,130,246,0.8)';
+            for (let r = 0; r < HG_ROWS; r++) {
+                for (let c = 0; c < HG_COLS; c++) {
+                    if (hgGrid[r][c] === 2) {
+                        ctx.fillRect(c * hgCellW, r * hgCellH, hgCellW + 1, hgCellH + 1);
+                    }
+                }
+            }
+        }
+
+        function updateHeungPlayerPos() {
+            const player = document.getElementById('heung-player');
+            if (!player) return;
+            // 위치를 정사각 경계 안으로 클램프 (CSS 오프셋 제거)
+            const x = hgPlayer.c * hgCellW;
+            const y = hgPlayer.r * hgCellH;
+            player.style.left = `${x}px`;
+            player.style.top = `${y}px`;
+        }
+
+        function updateHeungProgressBar() {
+            const percent = Math.min(100, Math.round((recalcHeungSquareCaptured() / HG_TOTAL_SQUARE) * 100));
+            document.getElementById('heung-progress-bar').style.width = `${percent}%`;
+            if (percent >= HG_GOAL) {
+                endHeungGame(true);
+            }
+        }
+
+        function recalcHeungSquareCaptured() {
+            let cnt = 0;
+            for (let r = HG_SQ_START_R; r < HG_SQ_START_R + HG_SIDE; r++) {
+                for (let c = HG_SQ_START_C; c < HG_SQ_START_C + HG_SIDE; c++) {
+                    if (hgGrid[r][c] === 1) cnt++;
+                }
+            }
+            hgCapturedSquareCount = cnt;
+            return cnt;
+        }
+
+        function endHeungGame(success) {
+            if (!hgActive) return;
+            hgActive = false;
+            clearInterval(hgLoop);
+            clearInterval(hgShipInterval);
+            window.removeEventListener('keydown', handleHeungKey);
+
+            if (success) {
+                document.getElementById('heung-result').style.display = 'flex';
+            } else {
+                document.getElementById('heung-fail').style.display = 'flex';
+            }
+        }
+
 
         function startBearGame() {
             mgScore = 0;
@@ -2156,9 +3340,16 @@
         });
 
         // 방어전 게임 진행 버튼
-        document.getElementById('defense-proceed-btn').addEventListener('click', () => {
-            document.getElementById('defense-game-overlay').style.display = 'none';
+        bindDefenseProceedBtn();
+
+        // 흥선대원군 게임 진행 / 재시작 버튼
+        document.getElementById('heung-proceed-btn').addEventListener('click', () => {
+            document.getElementById('heung-game-overlay').style.display = 'none';
             renderScene(mgNextScene);
+        });
+        document.getElementById('heung-restart-btn').addEventListener('click', () => {
+            document.getElementById('heung-game-overlay').style.display = 'none';
+            renderScene('start');
         });
 
         function spawnItem() {
@@ -2323,12 +3514,42 @@
                         console.log('Starting minigame:', choice.minigame);
                         startMinigame(choice.minigame, choice.next);
                     } else {
-                        renderScene(choice.next);
+                        // 올바른 선택(엔딩/위기 제외)일 때 방금 선택 결과 오버레이 표시
+                        const currentData = data;
+                        const nextData = getSafeData(choice.next);
+                        if (nextData.type !== 'ending' && nextData.type !== 'crisis') {
+                            showChoiceResult(choice, currentData, choice.next);
+                        } else {
+                            renderScene(choice.next);
+                        }
                     }
                 });
                 
                 choicesDiv.appendChild(btn);
             });
+        }
+
+        function showChoiceResult(choice, currentScene, nextId) {
+            const overlay = document.getElementById('choice-result-overlay');
+            // 방금 선택한 결과를 강조 (choice.resultDesc가 있으면 사용)
+            const title = choice.resultTitle || `선택 결과: ${choice.text}`;
+            // 현재 장면 설명을 기본으로 사용하되, 선택 문구를 포함
+            const baseDesc = currentScene && currentScene.resultNote ? currentScene.resultNote : (currentScene ? currentScene.desc : '');
+            const desc = choice.resultDesc || `${choice.text} 선택을 실행했습니다.<br><br>${baseDesc || ''}`;
+
+            document.getElementById('choice-result-title').textContent = title;
+            document.getElementById('choice-result-desc').innerHTML = desc;
+
+            // 진행 버튼 재바인딩
+            const proceed = document.getElementById('choice-result-proceed');
+            const newBtn = proceed.cloneNode(true);
+            proceed.parentNode.replaceChild(newBtn, proceed);
+            newBtn.addEventListener('click', () => {
+                overlay.classList.add('hidden');
+                renderScene(nextId);
+            });
+
+            overlay.classList.remove('hidden');
         }
     </script>
 </body>
