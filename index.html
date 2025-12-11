@@ -906,7 +906,7 @@
     </div>
 
     <div class="text-xs text-stone-400 opacity-70 mt-2 font-sans select-none">
-        역사의 선택: 광복을 향해서 made by gamtudyssam 0.007
+        역사의 선택: 광복을 향해서 made by gamtudyssam 0.008
 
     <script>
         // 칭호 데이터
@@ -1980,10 +1980,10 @@
         let defenseScore = 0;
         let defenseMongols = []; // 활성화된 몽골 목록
         let defenseWave = 1;
-        let defenseSpawnRate = 2000; // 초기 스폰 간격 (2초)
+        let defenseSpawnRate = 500; // 초기 스폰 간격 크게 단축
         let defenseMongolHP = 3; // 몽골 체력 (3으로 증가)
         let defenseArrowCooldown = 0;
-        const DEFENSE_MAX_MONGOLS = 50; // 최대 몽골 수 대폭 증가
+        const DEFENSE_MAX_MONGOLS = 80; // 최대 몽골 수 더 증가
         const DEFENSE_Y_LINES = [20]; // 화면 맨 아래쪽 한 줄만 (bottom 기준)
         let defenseMoveInterval; // 이동 루프 클리어용
         let defenseTouchHandler; // 터치 핸들러 참조 저장
@@ -2051,7 +2051,7 @@
             defenseScore = 0;
             defenseMongols = [];
             defenseWave = 1;
-            defenseSpawnRate = 800; // 스폰 속도 대폭 증가
+            defenseSpawnRate = 500; // 더 자주 스폰
             defenseMongolHP = 3;
             lockBodyScroll(true);
 
@@ -2143,7 +2143,7 @@
                 x: gameRect.width + 200, // 화면 오른쪽 밖에서 시작
                 y: yPos,
                 hp: defenseMongolHP,
-                speed: (1.0 + Math.random() * 0.5) * 12 // 현재보다 3배 더 빠르게
+                speed: (1.2 + Math.random() * 0.6) * 18 // 더 빠르게
             };
 
             defenseMongols.push(mongolData);
@@ -2757,6 +2757,16 @@
             const inSafe = hgGrid[nr][nc] === 1;
             const wasDrawing = hgPlayer.drawing;
 
+            // 안전 구역이지만 둘레(perimeter)가 아닌 곳에 있을 때는 바로 외곽으로 이동시켜 갇힘 방지
+            if (!hgPlayer.drawing && hgGrid[hgPlayer.r][hgPlayer.c] === 1 && !isPerimeterCell(hgPlayer.r, hgPlayer.c)) {
+                const p = findNearestPerimeter(hgPlayer.r, hgPlayer.c);
+                hgPlayer.r = p.r;
+                hgPlayer.c = p.c;
+                updateHeungPlayerPos();
+                hgRespawnPos = { ...hgPlayer };
+                return;
+            }
+
             // 이동 가능성 체크: 개방된 내부(1)라도 외곽이 아니면 이동 불가
             if (!hgPlayer.drawing && hgGrid[nr][nc] === 1 && !isPerimeterCell(nr, nc)) return;
             if (hgPlayer.drawing && hgGrid[nr][nc] === 1 && !isPerimeterCell(nr, nc) && !inSafe) return;
@@ -2931,6 +2941,12 @@
             hgTrail = [];
             renderHeungMask();
             hgCapturedSquareCount = recalcHeungSquareCaptured();
+
+            // 확보 후 플레이어를 가장 가까운 외곽으로 이동시켜 내부에 갇히지 않도록 처리
+            const p = findNearestPerimeter(hgPlayer.r, hgPlayer.c);
+            hgPlayer = { r: p.r, c: p.c, dir: null, drawing: false };
+            hgRespawnPos = { ...hgPlayer };
+            updateHeungPlayerPos();
         }
 
         function findNearestEmpty(r, c) {
