@@ -906,7 +906,7 @@
     </div>
 
     <div class="text-xs text-stone-400 opacity-70 mt-2 font-sans select-none">
-        역사의 선택: 광복을 향해서 made by gamtudyssam 0.006
+        역사의 선택: 광복을 향해서 made by gamtudyssam 0.007
 
     <script>
         // 칭호 데이터
@@ -2871,10 +2871,7 @@
             const speed = 0.8;
             hgSparxPos = (hgSparxPos + speed) % perimeter;
             const pos = convertPerimeterToRC(hgSparxPos);
-            const playerOnBoundary = (hgPlayer.r === pos.r && hgPlayer.c === pos.c && !hgPlayer.drawing);
-            if (playerOnBoundary) {
-                loseHeungLife();
-            }
+            // 외곽 안전 지대에서 플레이어가 즉시 사망하지 않도록 충돌 판정 제거
         }
 
         function convertPerimeterToRC(t) {
