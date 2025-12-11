@@ -148,6 +148,170 @@
             }
         }
 
+        /* 안중근 리듬 미니게임 */
+        #ahn-game-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            width: 100vw;
+            height: 100dvh;
+            background: rgba(0,0,0,0.85);
+            z-index: 520;
+            touch-action: none;
+            backdrop-filter: blur(4px);
+        }
+        .ahn-wrapper {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+        }
+        .ahn-stage {
+            position: relative;
+            width: min(980px, 95vw);
+            height: min(580px, 78dvh);
+            background: url('ahn.png') center/cover no-repeat;
+            border-radius: 18px;
+            border: 3px solid rgba(255,255,255,0.2);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.45);
+            overflow: hidden;
+        }
+        .ahn-darken {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(180deg, rgba(0,0,0,0.55), rgba(0,0,0,0.75));
+        }
+        .ahn-hud {
+            position: absolute;
+            top: 16px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #fff;
+            text-align: center;
+            z-index: 2;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .ahn-hud h2 {
+            font-size: clamp(26px, 4vw, 42px);
+            font-weight: 900;
+            color: #facc15;
+            text-shadow: 0 2px 8px rgba(0,0,0,0.6);
+        }
+        .ahn-lights {
+            position: absolute;
+            top: 10%;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 14px;
+            z-index: 3;
+            pointer-events: none;
+        }
+        .ahn-light {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.12);
+            border: 3px solid rgba(255,255,255,0.35);
+            box-shadow: inset 0 0 12px rgba(0,0,0,0.6);
+            transition: background 0.12s, transform 0.12s;
+        }
+        .ahn-light.active {
+            background: #f87171;
+            transform: scale(1.08);
+            box-shadow: 0 0 16px #f87171, inset 0 0 10px rgba(0,0,0,0.4);
+        }
+        .ahn-btn {
+            position: absolute;
+            bottom: 28px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 16px 26px;
+            border-radius: 14px;
+            border: 2px solid rgba(255,255,255,0.35);
+            background: linear-gradient(90deg, #ef4444, #f97316);
+            color: #fff;
+            font-weight: 900;
+            font-size: 18px;
+            box-shadow: 0 12px 22px rgba(0,0,0,0.45);
+            z-index: 2;
+            touch-action: manipulation;
+        }
+        .ahn-result {
+            position: absolute;
+            inset: 0;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            gap: 12px;
+            background: rgba(0,0,0,0.8);
+            color: #fff;
+            z-index: 3;
+            text-align: center;
+            padding: 20px;
+        }
+        .ahn-result h3 {
+            font-size: clamp(26px, 4vw, 38px);
+            font-weight: 800;
+        }
+        .ahn-result button {
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-weight: 800;
+            border: 2px solid rgba(255,255,255,0.3);
+            background: linear-gradient(90deg, #2563eb, #22d3ee);
+            color: #fff;
+            box-shadow: 0 10px 18px rgba(0,0,0,0.35);
+        }
+        .ahn-lane {
+            position: absolute;
+            inset: 12% 26% 20% 26%;
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            pointer-events: none;
+            z-index: 2;
+            touch-action: none;
+        }
+        .ahn-hitline {
+            position: absolute;
+            bottom: 12%;
+            left: 0;
+            width: 100%;
+            height: 6px;
+            background: linear-gradient(90deg, #f97316, #facc15);
+            box-shadow: 0 0 12px rgba(250,204,21,0.7);
+            opacity: 0.9;
+        }
+        .ahn-note {
+            position: absolute;
+            top: -80px;
+            left: 50%;
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            transform: translateX(-50%);
+            background: radial-gradient(circle, #fef2f2 0%, #f87171 65%, #b91c1c 100%);
+            box-shadow: 0 8px 18px rgba(0,0,0,0.45), 0 0 10px rgba(248,113,113,0.8);
+            pointer-events: none;
+        }
+        .ahn-note.fast { width: 62px; height: 62px; background: radial-gradient(circle, #e0f2fe, #38bdf8 70%, #075985 100%); }
+        .ahn-note.slow { width: 78px; height: 78px; background: radial-gradient(circle, #ecfccb, #a3e635 70%, #4d7c0f 100%); }
+
+        @media (max-width: 768px) {
+            .ahn-stage { width: 96vw; height: 70dvh; }
+            .ahn-lane { inset: 10% 18% 24% 18%; }
+            .ahn-lights { top: 8%; }
+            .ahn-btn { bottom: 18px; font-size: 16px; padding: 14px 22px; }
+        }
+
         /* 흥선대원군 미니게임 (척화비 땅따먹기) */
         #heung-game-overlay {
             display: none;
@@ -776,6 +940,39 @@
         </div>
     </div>
 
+    <!-- 안중근 리듬 미니게임 -->
+    <div id="ahn-game-overlay">
+        <div class="ahn-wrapper">
+            <div class="ahn-stage">
+                <div class="ahn-darken"></div>
+                <div class="ahn-hud">
+                    <h2>탕! 탕! 탕! 리듬에 맞춰 사격</h2>
+                    <div class="text-sm text-amber-200">불빛이 켜질 때 버튼을 눌러 주세요 (3회)</div>
+                    <div class="text-xs text-stone-200 opacity-80">성공하면 "코레아 우라!"</div>
+                </div>
+                <div class="ahn-lane">
+                    <div class="ahn-hitline" id="ahn-hitline"></div>
+                </div>
+                <div class="ahn-lights">
+                    <div class="ahn-light" id="ahn-light-1"></div>
+                    <div class="ahn-light" id="ahn-light-2"></div>
+                    <div class="ahn-light" id="ahn-light-3"></div>
+                </div>
+                <button id="ahn-hit-btn" class="ahn-btn">발사 / 박자 입력</button>
+                <div id="ahn-result-ok" class="ahn-result">
+                    <h3>🎯 명중! 코레아 우라!</h3>
+                    <p>세 발을 정확히 날렸습니다.</p>
+                    <button id="ahn-proceed-btn">다음으로 ▶</button>
+                </div>
+                <div id="ahn-result-fail" class="ahn-result">
+                    <h3>💥 놓쳤습니다</h3>
+                    <p>다시 시도해 보세요.</p>
+                    <button id="ahn-retry-btn">다시 도전</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- 올바른 선택 결과 오버레이 -->
     <div id="choice-result-overlay" class="hidden fixed inset-0 bg-black/80 z-[12000] flex items-center justify-center p-6">
         <div class="bg-white rounded-2xl shadow-2xl max-w-xl w-full p-6 space-y-4 text-center">
@@ -906,7 +1103,7 @@
     </div>
 
     <div class="text-xs text-stone-400 opacity-70 mt-2 font-sans select-none">
-        역사의 선택: 광복을 향해서 made by gamtudyssam 0.008
+        역사의 선택: 광복을 향해서 made by gamtudyssam 0.009
 
     <script>
         // 칭호 데이터
@@ -1754,7 +1951,7 @@
                 desc: "조선 침략의 원흉 이토 히로부미가 하얼빈 역에 도착했습니다. 안중근 의사의 품속에는 권총이 있습니다. 방아쇠를 당기시겠습니까?",
                 progress: 90, icon: "🔫",
                 choices: [
-                    { text: "탕! 탕! 탕! 이토를 사살하고 '코레아 우라(대한 만세)'를 외친다.", next: "colonial_march" },
+                    { text: "탕! 탕! 탕! 이토를 사살하고 '코레아 우라(대한 만세)'를 외친다.", next: "colonial_march", minigame: 'ahn_rhythm_game' },
                     { text: "평화적으로 대화하여 설득을 시도한다.", next: "crisis_naive" },
                     { text: "두려움에 떨며 거사를 포기하고 숨는다.", next: "end_coward" }
                 ]
@@ -2043,6 +2240,17 @@
         let hgLoop;
         let hgSparxPos = 0; // 경계 적 위치(둘레 기준)
         let hgStartedDrawing = false; // 첫 선을 그리기 시작했는지
+
+        // 안중근 리듬 미니게임 변수
+        let ahnActive = false;
+        let ahnBeats = [];
+        let ahnCurrent = 0;
+        let ahnAllowHit = false;
+        let ahnTimeouts = [];
+        let ahnNotes = [];
+        let ahnLoop;
+        let ahnHitY = 0;
+        let ahnNextScene = '';
 
         function startDefenseGame() {
             console.log('Starting defense game...');
@@ -2363,6 +2571,8 @@
                 startFactionGame();
             } else if (gameType === 'heung_game') {
                 startHeungGame();
+            } else if (gameType === 'ahn_rhythm_game') {
+                startAhnGame();
             }
         }
 
@@ -3133,6 +3343,194 @@
             } else {
                 document.getElementById('heung-fail').style.display = 'flex';
             }
+        }
+
+        // --- 안중근 리듬 미니게임 ---
+        function startAhnGame() {
+            stopAhnGame();
+            ahnActive = true;
+            ahnCurrent = 0;
+            ahnBeats = generateBeats();
+            ahnNotes = [];
+            ahnNextScene = mgNextScene;
+            lockBodyScroll(true);
+
+            const overlay = document.getElementById('ahn-game-overlay');
+            const ok = document.getElementById('ahn-result-ok');
+            const fail = document.getElementById('ahn-result-fail');
+            const lights = [1,2,3].map(i => document.getElementById(`ahn-light-${i}`));
+
+            overlay.style.display = 'block';
+            ok.style.display = 'none';
+            fail.style.display = 'none';
+            lights.forEach(l => l.classList.remove('active'));
+
+            // 버튼 재바인딩
+            const hitBtn = document.getElementById('ahn-hit-btn');
+            const proceed = document.getElementById('ahn-proceed-btn');
+            const retry = document.getElementById('ahn-retry-btn');
+
+            const newHit = hitBtn.cloneNode(true);
+            hitBtn.parentNode.replaceChild(newHit, hitBtn);
+            newHit.addEventListener('click', handleAhnHit, { passive: false });
+            newHit.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                handleAhnHit();
+            }, { passive: false });
+
+            const newProceed = proceed.cloneNode(true);
+            proceed.parentNode.replaceChild(newProceed, proceed);
+            newProceed.addEventListener('click', () => {
+                stopAhnGame();
+                overlay.style.display = 'none';
+                lockBodyScroll(false);
+                renderScene(ahnNextScene);
+            });
+
+            const newRetry = retry.cloneNode(true);
+            retry.parentNode.replaceChild(newRetry, retry);
+            newRetry.addEventListener('click', () => {
+                stopAhnGame();
+                startAhnGame();
+            });
+
+            recalcAhnLayout();
+            window.addEventListener('resize', recalcAhnLayout);
+
+            scheduleAhnBeats();
+            ahnLoop = setInterval(updateAhnNotes, 16);
+        }
+
+        function stopAhnGame() {
+            ahnActive = false;
+            ahnAllowHit = false;
+            ahnTimeouts.forEach(t => clearTimeout(t));
+            ahnTimeouts = [];
+            ahnNotes.forEach(n => n.el.remove());
+            ahnNotes = [];
+            clearInterval(ahnLoop);
+            window.removeEventListener('resize', recalcAhnLayout);
+        }
+
+        function generateBeats() {
+            // 세 박, 0ms에서 시작 후 랜덤 간격 600~1100ms
+            const beats = [0];
+            beats.push(beats[0] + 600 + Math.random() * 500);
+            beats.push(beats[1] + 600 + Math.random() * 500);
+            return beats;
+        }
+
+        function scheduleAhnBeats() {
+            const lane = document.querySelector('.ahn-lane');
+            ahnBeats.forEach((beat, idx) => {
+                const timeoutId = setTimeout(() => {
+                    if (!ahnActive) return;
+                    const note = document.createElement('div');
+                    note.className = 'ahn-note';
+                    // 속도: fast/normal/slow 랜덤
+                    const speedType = Math.random();
+                    let speed = 5.2;
+                    if (speedType < 0.33) { speed = 6.4; note.classList.add('fast'); }
+                    else if (speedType > 0.66) { speed = 4.1; note.classList.add('slow'); }
+
+                    // 좌우 살짝 랜덤
+                    const laneWidth = lane.getBoundingClientRect().width;
+                    const offset = (Math.random() - 0.5) * (laneWidth * 0.18);
+                    note.style.left = `calc(50% + ${offset}px)`;
+                    lane.appendChild(note);
+
+                    ahnNotes.push({ el: note, y: -80, speed, hit: false });
+                }, beat);
+                ahnTimeouts.push(timeoutId);
+            });
+        }
+
+        function handleAhnHit() {
+            if (!ahnActive) return;
+            const hitY = ahnHitY;
+            const windowPx = 60; // 판정 범위
+
+            // 히트라인에 가장 가까운 노트 찾기
+            let target = null;
+            let bestDist = Infinity;
+            ahnNotes.forEach(n => {
+                const dist = Math.abs(n.y - hitY);
+                if (!n.hit && dist < bestDist) {
+                    bestDist = dist;
+                    target = n;
+                }
+            });
+
+            if (target && bestDist <= windowPx) {
+                target.hit = true;
+                target.el.classList.add('hit');
+                target.el.style.opacity = '0.15';
+                setTimeout(() => target.el.remove(), 120);
+                ahnCurrent++;
+                flashAhnLights(ahnCurrent);
+                if (ahnCurrent >= 3) {
+                    finishAhnGame();
+                }
+            }
+        }
+
+        function finishAhnGame() {
+            if (!ahnActive) return;
+            const ok = document.getElementById('ahn-result-ok');
+            const fail = document.getElementById('ahn-result-fail');
+            if (ahnCurrent >= 3) {
+                ok.style.display = 'flex';
+            } else {
+                fail.style.display = 'flex';
+            }
+        }
+
+        function updateAhnNotes() {
+            if (!ahnActive) return;
+            const lane = document.querySelector('.ahn-lane');
+            if (!lane) return;
+            const laneRect = lane.getBoundingClientRect();
+            const maxY = laneRect.height + 100;
+
+            ahnNotes.forEach(n => {
+                n.y += n.speed;
+                n.el.style.transform = `translate(-50%, ${n.y}px)`;
+            });
+
+            // 미스 판정: 히트라인 지나쳤는데 미스
+            ahnNotes = ahnNotes.filter(n => {
+                if (n.hit) return false;
+                if (n.y - ahnHitY > 70) {
+                    // 미스
+                    finishAhnGame();
+                    n.el.remove();
+                    return false;
+                }
+                if (n.y > maxY) {
+                    n.el.remove();
+                    return false;
+                }
+                return true;
+            });
+        }
+
+        function flashAhnLights(count) {
+            const lights = [1,2,3].map(i => document.getElementById(`ahn-light-${i}`));
+            lights.forEach((l, idx) => {
+                if (idx < count) {
+                    l.classList.add('active');
+                    setTimeout(() => l.classList.remove('active'), 250);
+                }
+            });
+        }
+
+        function recalcAhnLayout() {
+            const hitLineEl = document.getElementById('ahn-hitline');
+            const stageEl = document.querySelector('.ahn-stage');
+            if (!hitLineEl || !stageEl) return;
+            const stageRect = stageEl.getBoundingClientRect();
+            const hitRect = hitLineEl.getBoundingClientRect();
+            ahnHitY = hitRect.top - stageRect.top;
         }
 
 
