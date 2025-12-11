@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <title>역사의 선택: 광복을 향하여</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
@@ -118,13 +118,14 @@
             position: fixed;
             top: 0;
             left: 0;
-            width: 100%;
-            height: 100%;
+            width: 100vw;
+            height: 100dvh;
             background-color: rgba(0,0,0,0.8);
             background-image: url('dangunbackground.png');
             background-size: cover;
             background-position: center;
             z-index: 300;
+            touch-action: none;
         }
         
         /* 미니게임 스타일 */
@@ -135,6 +136,16 @@
 
         #defense-game-window {
             z-index: 9999; /* 최상위 레이어 */
+            touch-action: none;
+        }
+        .defense-frame {
+            width: min(1200px, 96vw) !important;
+            height: min(820px, 92dvh) !important;
+        }
+        @media (max-width: 640px) {
+            .defense-frame {
+                border-width: 2px;
+            }
         }
 
         /* 흥선대원군 미니게임 (척화비 땅따먹기) */
@@ -142,6 +153,8 @@
             display: none;
             position: fixed;
             inset: 0;
+            width: 100vw;
+            height: 100dvh;
             background: rgba(0,0,0,0.9);
             z-index: 500;
             touch-action: none;
@@ -228,6 +241,9 @@
             grid-template-rows: repeat(2, 64px);
             gap: 10px;
             z-index: 12;
+            touch-action: none;
+            padding-bottom: env(safe-area-inset-bottom, 0px);
+            padding-right: env(safe-area-inset-right, 0px);
         }
         .heung-vbtn {
             width: 64px;
@@ -242,6 +258,7 @@
             justify-content: center;
             user-select: none;
             backdrop-filter: blur(4px);
+            touch-action: none;
         }
         .heung-vbtn:active {
             background: rgba(255,255,255,0.45);
@@ -250,7 +267,7 @@
         .heung-vleft { grid-column: 1; grid-row: 2; }
         .heung-vdown { grid-column: 2; grid-row: 2; }
         .heung-vright { grid-column: 3; grid-row: 2; }
-        @media (min-width: 1024px) {
+        @media (hover: hover) and (pointer: fine) {
             .heung-virtual-controls { display: none; }
         }
         #heung-result, #heung-fail {
@@ -291,13 +308,14 @@
             position: fixed;
             top: 0;
             left: 0;
-            width: 100%;
-            height: 100%;
+            width: 100vw;
+            height: 100dvh;
             background-color: rgba(0,0,0,0.8);
             background-image: url('river.jpg');
             background-size: cover;
             background-position: center;
             z-index: 300;
+            touch-action: none;
         }
         #jumong-char {
             position: absolute;
@@ -330,6 +348,9 @@
             grid-template-rows: repeat(2, 60px);
             gap: 10px;
             z-index: 330;
+            touch-action: none;
+            padding-bottom: env(safe-area-inset-bottom, 0px);
+            padding-right: env(safe-area-inset-right, 0px);
         }
         .v-btn {
             width: 60px;
@@ -345,6 +366,7 @@
             user-select: none;
             cursor: pointer;
             backdrop-filter: blur(4px);
+            touch-action: none;
         }
         .v-btn:active {
             background-color: rgba(255, 255, 255, 0.6);
@@ -354,8 +376,13 @@
         .v-down { grid-column: 2; grid-row: 2; }
         .v-right { grid-column: 3; grid-row: 2; }
         
-        /* PC에서는 가상 키패드 숨김 (선택 사항, 모바일에서만 보이게 하려면 미디어 쿼리 사용) */
-        @media (min-width: 1024px) {
+        /* 터치 스크롤 방지 */
+        #rg-game-area, #heung-game-area, #defense-game-area, #mg-game-area {
+            touch-action: none;
+        }
+        
+        /* PC에서는 가상 키패드를 숨기고, 터치 디바이스에서는 표시 */
+        @media (hover: hover) and (pointer: fine) {
             .virtual-controls {
                 display: none;
             }
@@ -404,6 +431,8 @@
             display: none;
             position: fixed;
             inset: 0;
+            width: 100vw;
+            height: 100dvh;
             background-color: rgba(0, 0, 0, 0.85);
             z-index: 450;
             touch-action: none;
@@ -691,7 +720,7 @@
                 <div class="heung-progress">
                     <div id="heung-progress-bar" class="heung-progress-bar"></div>
                 </div>
-                <div class="text-sm text-amber-200 drop-shadow">Monuument를 90% 이상 드러내세요</div>
+                <div class="text-sm text-amber-200 drop-shadow">Monuument를 80% 이상 드러내세요</div>
             </div>
 
             <div id="heung-game-area">
@@ -810,7 +839,7 @@
 
     <!-- 삼별초 방어전 미니게임 새 창 -->
     <div id="defense-game-window" class="hidden fixed inset-0 bg-black z-50 flex items-center justify-center">
-        <div class="bg-gradient-to-b from-blue-900 to-green-900 w-11/12 h-5/6 rounded-lg shadow-2xl border-4 border-yellow-400 overflow-hidden relative">
+        <div class="bg-gradient-to-b from-blue-900 to-green-900 w-11/12 h-5/6 defense-frame rounded-lg shadow-2xl border-4 border-yellow-400 overflow-hidden relative">
             <!-- 헤더 -->
             <div class="bg-yellow-600 text-black p-4 text-center font-bold text-xl border-b-4 border-yellow-400">
                 🏰 고려 대몽 항쟁 1231년~ 🏹
@@ -859,7 +888,7 @@
     </div>
 
     <div class="text-xs text-stone-400 opacity-70 mt-2 font-sans select-none">
-        역사의 선택: 광복을 향해서 made by gamtudyssam 0.004
+        역사의 선택: 광복을 향해서 made by gamtudyssam 0.005
     </div>
 
     <script>
@@ -1865,6 +1894,15 @@
             return array;
         }
 
+        // 모바일/오버레이 시 화면 스크롤 방지 유틸
+        let overlayLockCount = 0;
+        function lockBodyScroll(lock) {
+            overlayLockCount = Math.max(0, overlayLockCount + (lock ? 1 : -1));
+            const active = overlayLockCount > 0;
+            document.documentElement.style.overscrollBehavior = active ? 'none' : '';
+            document.body.style.overflow = active ? 'hidden' : '';
+        }
+
         // --- 웅녀 미니게임 로직 ---
         let mgInterval;
         let mgScore = 0;
@@ -1931,6 +1969,7 @@
         const DEFENSE_MAX_MONGOLS = 50; // 최대 몽골 수 대폭 증가
         const DEFENSE_Y_LINES = [20]; // 화면 맨 아래쪽 한 줄만 (bottom 기준)
         let defenseMoveInterval; // 이동 루프 클리어용
+        let defenseTouchHandler; // 터치 핸들러 참조 저장
         // 방어전 진행 버튼 재바인딩 유틸
         function bindDefenseProceedBtn() {
             const btn = document.getElementById('defense-proceed-btn');
@@ -1943,6 +1982,7 @@
                     win.classList.add('hidden');
                     win.style.display = 'none';
                 }
+                lockBodyScroll(false);
                 // mgNextScene가 비어 있을 때를 대비한 안전장치
                 renderScene(mgNextScene || 'start');
             });
@@ -1996,6 +2036,7 @@
             defenseWave = 1;
             defenseSpawnRate = 800; // 스폰 속도 대폭 증가
             defenseMongolHP = 3;
+            lockBodyScroll(true);
 
             const gameWindow = document.getElementById('defense-game-window');
             const resultEl = document.getElementById('defense-result');
@@ -2030,12 +2071,16 @@
                 showTitles(); // 기존 업적 시스템 사용
             });
 
-            // 화살 발사 이벤트 등록 (화면 클릭/터치)
+            // 화살 발사 이벤트 등록 (화면 클릭/터치) - 중복 방지
+            gameArea.removeEventListener('click', handleDefenseClick);
+            if (defenseTouchHandler) gameArea.removeEventListener('touchstart', defenseTouchHandler);
+
             gameArea.addEventListener('click', handleDefenseClick);
-            gameArea.addEventListener('touchstart', (e) => {
+            defenseTouchHandler = (e) => {
                 e.preventDefault();
-                handleDefenseClick(e.touches[0]);
-            }, { passive: false });
+                handleDefenseClick(e.touches ? e.touches[0] : e);
+            };
+            gameArea.addEventListener('touchstart', defenseTouchHandler, { passive: false });
 
             // 몽골 스폰 시작
             defenseInterval = setInterval(spawnMongol, defenseSpawnRate);
@@ -2284,7 +2329,8 @@
             // 이벤트 리스너 제거
             const gameArea = document.getElementById('defense-game-area');
             gameArea.removeEventListener('click', handleDefenseClick);
-            gameArea.removeEventListener('touchstart', handleDefenseClick);
+            if (defenseTouchHandler) gameArea.removeEventListener('touchstart', defenseTouchHandler);
+            defenseTouchHandler = null;
         }
 
         function startMinigame(gameType, nextScene) {
@@ -2311,6 +2357,7 @@
             factionBalanceTime = 0;
             noronProb = 0.55;
             soronProb = 0.55;
+            lockBodyScroll(true);
 
             const overlay = document.getElementById('faction-game-overlay');
             const resultEl = document.getElementById('faction-result');
@@ -2338,6 +2385,7 @@
             proceedBtn.parentNode.replaceChild(newProceedBtn, proceedBtn);
             newProceedBtn.addEventListener('click', () => {
                 document.getElementById('faction-game-overlay').style.display = 'none';
+                lockBodyScroll(false);
                 renderScene(mgNextScene);
             });
 
@@ -2489,6 +2537,7 @@
             hgSparxPos = 0;
             hgStartedDrawing = false;
             hgCapturedSquareCount = 0;
+            lockBodyScroll(true);
 
             const overlay = document.getElementById('heung-game-overlay');
             const resultEl = document.getElementById('heung-result');
@@ -2517,13 +2566,19 @@
 
             window.addEventListener('keydown', handleHeungKey);
             window.addEventListener('keyup', handleHeungKeyUp);
+            window.addEventListener('resize', resizeHeungArea);
+            const oldHeungBtns = document.querySelectorAll('.heung-vbtn');
+            oldHeungBtns.forEach(btn => {
+                const newBtn = btn.cloneNode(true);
+                btn.parentNode.replaceChild(newBtn, btn);
+            });
             document.querySelectorAll('.heung-vbtn').forEach(btn => {
                 const dir = btn.dataset.dir;
                 ['touchstart', 'mousedown'].forEach(ev => {
                     btn.addEventListener(ev, e => {
                         e.preventDefault();
                         hgPlayer.dir = dir;
-                    });
+                    }, { passive: false });
                 });
                 ['touchend', 'mouseup', 'mouseleave'].forEach(ev => {
                     btn.addEventListener(ev, () => {
@@ -2532,6 +2587,7 @@
                 });
             });
 
+            resizeHeungArea();
             hgLoop = setInterval(heungTick, 40);
         }
 
@@ -2541,6 +2597,7 @@
             clearInterval(hgShipInterval);
             window.removeEventListener('keydown', handleHeungKey);
             window.removeEventListener('keyup', handleHeungKeyUp);
+            window.removeEventListener('resize', resizeHeungArea);
         }
 
         function initHeungGrid() {
@@ -2587,6 +2644,45 @@
                 vy: (Math.random() > 0.5 ? 1 : -1) * (hgCellH * 0.35)
             };
             hgShips = [shipData];
+        }
+
+        function resizeHeungArea() {
+            if (!hgActive) return;
+            const area = document.getElementById('heung-game-area');
+            const mask = document.getElementById('heung-mask');
+            if (!area || !mask) return;
+
+            const rect = area.getBoundingClientRect();
+            const prevW = hgCellW || 1;
+            const prevH = hgCellH || 1;
+
+            mask.width = rect.width;
+            mask.height = rect.height;
+            hgCellW = rect.width / HG_COLS;
+            hgCellH = rect.height / HG_ROWS;
+
+            const player = document.getElementById('heung-player');
+            if (player) {
+                player.style.width = `${hgCellW * 1.2}px`;
+                player.style.height = `${hgCellH * 1.2}px`;
+            }
+
+            hgShips.forEach(ship => {
+                const gx = ship.x / prevW;
+                const gy = ship.y / prevH;
+                ship.x = gx * hgCellW;
+                ship.y = gy * hgCellH;
+
+                const dirX = ship.vx >= 0 ? 1 : -1;
+                const dirY = ship.vy >= 0 ? 1 : -1;
+                const newVx = Math.max(Math.abs(ship.vx / prevW * hgCellW), hgCellW * 0.25);
+                const newVy = Math.max(Math.abs(ship.vy / prevH * hgCellH), hgCellH * 0.25);
+                ship.vx = dirX * newVx;
+                ship.vy = dirY * newVy;
+            });
+
+            updateHeungPlayerPos();
+            renderHeungMask();
         }
 
         function handleHeungKey(e) {
@@ -3013,6 +3109,7 @@
         function startBearGame() {
             mgScore = 0;
             mgActive = true;
+            lockBodyScroll(true);
 
             const overlay = document.getElementById('minigame-overlay');
             const scoreEl = document.getElementById('mg-score');
@@ -3031,6 +3128,7 @@
             
             newProceedBtn.addEventListener('click', () => {
                 document.getElementById('minigame-overlay').style.display = 'none';
+                lockBodyScroll(false);
                 renderScene(mgNextScene);
             });
 
@@ -3043,6 +3141,7 @@
             jumongCol = 0;
             jumongRow = Math.floor(RG_ROWS / 2);
             riverGrid = [];
+            lockBodyScroll(true);
 
             const overlay = document.getElementById('river-game-overlay');
             const resultEl = document.getElementById('rg-result');
@@ -3066,6 +3165,7 @@
 
             newProceedBtn.addEventListener('click', () => {
                 document.getElementById('river-game-overlay').style.display = 'none';
+                lockBodyScroll(false);
                 renderScene(mgNextScene);
             });
 
@@ -3083,7 +3183,13 @@
             window.addEventListener('keydown', handleRgKeydown);
             
             // 가상 키패드 이벤트 등록 (한 번 터치/클릭할 때마다 한 번만 이동)
-            document.querySelectorAll('.v-btn').forEach(btn => {
+            const oldVBtns = document.querySelectorAll('.v-btn');
+            oldVBtns.forEach(btn => {
+                const newBtn = btn.cloneNode(true);
+                btn.parentNode.replaceChild(newBtn, btn);
+            });
+            const vBtns = document.querySelectorAll('.v-btn');
+            vBtns.forEach(btn => {
                 btn.addEventListener('touchstart', (e) => {
                     e.preventDefault();
                     const currentTime = Date.now();
@@ -3323,18 +3429,21 @@
         // 웅녀 게임 진행 버튼
         document.getElementById('mg-proceed-btn').addEventListener('click', () => {
             document.getElementById('minigame-overlay').style.display = 'none';
+            lockBodyScroll(false);
             renderScene(mgNextScene);
         });
 
         // 주몽 게임 진행 버튼
         document.getElementById('rg-proceed-btn').addEventListener('click', () => {
             document.getElementById('river-game-overlay').style.display = 'none';
+            lockBodyScroll(false);
             renderScene(mgNextScene);
         });
 
         // 주몽 게임 다시 시작 버튼
         document.getElementById('rg-restart-btn').addEventListener('click', () => {
             document.getElementById('river-game-overlay').style.display = 'none';
+            lockBodyScroll(false);
             // 게임 시작 화면으로 돌아감
             renderScene('start');
         });
@@ -3345,10 +3454,12 @@
         // 흥선대원군 게임 진행 / 재시작 버튼
         document.getElementById('heung-proceed-btn').addEventListener('click', () => {
             document.getElementById('heung-game-overlay').style.display = 'none';
+            lockBodyScroll(false);
             renderScene(mgNextScene);
         });
         document.getElementById('heung-restart-btn').addEventListener('click', () => {
             document.getElementById('heung-game-overlay').style.display = 'none';
+            lockBodyScroll(false);
             renderScene('start');
         });
 
@@ -3435,6 +3546,7 @@
         // 진행하기 버튼 이벤트
         document.getElementById('mg-proceed-btn').addEventListener('click', () => {
             document.getElementById('minigame-overlay').style.display = 'none';
+            lockBodyScroll(false);
             renderScene(mgNextScene);
         });
 
