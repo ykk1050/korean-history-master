@@ -455,6 +455,8 @@
             padding: 20px;
             gap: 12px;
             color: #fff;
+            overflow-y: auto;
+            padding-bottom: env(safe-area-inset-bottom, 24px);
         }
         .faction-topbar {
             display: flex;
@@ -486,6 +488,7 @@
         }
         .faction-board {
             flex: 1;
+            min-height: 0;
             display: grid;
             grid-template-columns: repeat(2, 1fr);
             gap: 14px;
@@ -498,6 +501,7 @@
             padding: 14px;
             backdrop-filter: blur(4px);
             overflow: hidden;
+            min-height: 0;
         }
         .faction-column h3 {
             text-align: center;
@@ -534,13 +538,27 @@
             pointer-events: none;
         }
         .faction-controls {
-            position: relative;
+            position: sticky;
+            bottom: 0;
             z-index: 2;
             display: flex;
             gap: 12px;
             justify-content: center;
             align-items: center;
             flex-wrap: wrap;
+            padding: 12px;
+            margin-top: auto;
+            background: rgba(0,0,0,0.35);
+            backdrop-filter: blur(8px);
+        }
+        @media (max-width: 768px) {
+            .faction-wrapper {
+                padding: 12px;
+            }
+            .faction-controls {
+                gap: 8px;
+                padding: 10px;
+            }
         }
         .faction-btn {
             padding: 14px 20px;
@@ -888,8 +906,7 @@
     </div>
 
     <div class="text-xs text-stone-400 opacity-70 mt-2 font-sans select-none">
-        역사의 선택: 광복을 향해서 made by gamtudyssam 0.005
-    </div>
+        역사의 선택: 광복을 향해서 made by gamtudyssam 0.006
 
     <script>
         // 칭호 데이터
