@@ -1103,7 +1103,7 @@
     </div>
 
     <div class="text-xs text-stone-400 opacity-70 mt-2 font-sans select-none">
-        역사의 선택: 광복을 향해서 made by gamtudyssam 0.012
+        역사의 선택: 광복을 향해서 made by gamtudyssam 0.013
 
     <script>
         // 칭호 데이터
@@ -2504,7 +2504,7 @@
         let defenseMongols = []; // 활성화된 몽골 목록
         let defenseWave = 1;
         let defenseSpawnRate = 200; // 초기 스폰 간격 크게 단축
-        let defenseMongolHP = 8; // 몽골 체력 (3으로 증가)
+        let defenseMongolHP = 10; // 몽골 체력 (3으로 증가)
         let defenseArrowCooldown = 0;
         const DEFENSE_MAX_MONGOLS = 80; // 최대 몽골 수 더 증가
         const DEFENSE_Y_LINES = [20]; // 화면 맨 아래쪽 한 줄만 (bottom 기준)
@@ -2677,7 +2677,7 @@
                 x: gameRect.width + 200, // 화면 오른쪽 밖에서 시작
                 y: yPos,
                 hp: defenseMongolHP,
-                speed: (1.2 + Math.random() * 0.6) * 25 // 더 빠르게
+                speed: (1.2 + Math.random() * 0.6) * 17 // 더 빠르게
             };
 
             defenseMongols.push(mongolData);
