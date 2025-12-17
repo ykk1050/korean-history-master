@@ -11,8 +11,11 @@
         body {
             font-family: 'Nanum Myeongjo', serif;
             background-color: #f5f5f0;
-            background-image: repeating-linear-gradient(45deg, #f5f5f0 25%, #ebebe0 25%, #ebebe0 50%, #f5f5f0 50%, #f5f5f0 75%, #ebebe0 75%, #ebebe0 100%);
-            background-size: 20px 20px;
+            background-image: url('background.png');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
             color: #2c2c2c;
         }
         
@@ -902,7 +905,7 @@
                 <div class="heung-progress">
                     <div id="heung-progress-bar" class="heung-progress-bar"></div>
                 </div>
-                <div class="text-sm text-amber-200 drop-shadow">Monuument를 80% 이상 드러내세요</div>
+                <div class="text-sm text-amber-200 drop-shadow">숨겨진 그림을 80% 이상 드러내세요</div>
             </div>
 
             <div id="heung-game-area">
@@ -1103,7 +1106,7 @@
     </div>
 
     <div class="text-xs text-stone-400 opacity-70 mt-2 font-sans select-none">
-        역사의 선택: 광복을 향해서 made by gamtudyssam 0.015
+        역사의 선택: 광복을 향해서 made by gamtudyssam 0.016
 
     <script>
         // 칭호 데이터
@@ -1799,7 +1802,7 @@
             joseon_silhak: {
                 type: 'history', badge: 'badge-joseon', era: "조선 후기", year: "19세기 초",
                 title: "실학의 대두",
-                desc: "공자 왈 맹자 왈 하는 백성들의 생황과는 직접적 관련이 없는 학문 대신, 농업과 상공업 등 실생활에 도움이 되는 '실학'이 등장했습니다. 김정호는 전국을 돌며 정밀한 지도를 만들었습니다.",
+                desc: "공자 왈 맹자 왈 하는 백성들의 생황과는 직접적 관련이 없는 학문 대신, 농업과 상공업 등 실생활에 도움이 되는 '실학'이 등장했습니다. 김정호는 전국을 돌며 새로운 도전을 시작합니다.",
                 progress: 78, icon: "🗺️",
                 choices: [
                     { text: "나라를 위해 정확한 지도인 '대동여지도'를 제작한다.", next: "modern_daewon" },
@@ -2586,7 +2589,7 @@
             defenseMongols = [];
             defenseWave = 1;
             defenseSpawnRate = 500; // 더 자주 스폰
-            defenseMongolHP = 3;
+            defenseMongolHP = 10;
             lockBodyScroll(true);
 
             const gameWindow = document.getElementById('defense-game-window');
