@@ -977,6 +977,36 @@
     </div>
 
     <!-- 올바른 선택 결과 오버레이 -->
+    <!-- 미니게임 선택 모달 -->
+    <div id="minigame-modal" class="modal hidden fixed inset-0 bg-black/90 z-[13000] flex items-center justify-center p-4">
+        <div class="bg-stone-800 rounded-2xl shadow-2xl max-w-4xl w-full p-6 text-stone-100 max-h-[90vh] overflow-y-auto border border-stone-600">
+            <div class="flex justify-between items-center mb-6 border-b border-stone-700 pb-4">
+                <h2 class="text-3xl font-extrabold text-amber-400">🎮 미니게임 아케이드</h2>
+                <button onclick="closeMinigameMenu()" class="text-stone-400 hover:text-white text-2xl">✕</button>
+            </div>
+            <p class="text-stone-400 mb-6 text-center">시간 제한 없는 무한 모드 또는 기록 갱신에 도전하세요!</p>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="minigame-list">
+                <!-- 자바스크립트로 동적 생성 -->
+            </div>
+        </div>
+    </div>
+
+    <!-- 미니게임 결과 오버레이 (아케이드용) -->
+    <div id="arcade-result-overlay" class="hidden fixed inset-0 bg-black/90 z-[14000] flex items-center justify-center p-6">
+        <div class="bg-stone-900 border-2 border-amber-500 rounded-2xl shadow-2xl max-w-md w-full p-8 text-center relative">
+            <h2 id="arcade-result-title" class="text-3xl font-bold text-amber-400 mb-2">GAME OVER</h2>
+            <div class="text-6xl mb-4 py-4" id="arcade-result-icon">🏁</div>
+            <p id="arcade-result-score" class="text-2xl text-white font-mono mb-2">Score: 100</p>
+            <p id="arcade-result-best" class="text-sm text-stone-400 mb-8">Best: 200</p>
+            
+            <div class="flex flex-col gap-3">
+                <button id="arcade-retry-btn" class="w-full py-3 bg-amber-600 hover:bg-amber-500 text-white font-bold rounded-lg text-lg">다시 하기</button>
+                <button onclick="closeArcadeResult()" class="w-full py-3 bg-stone-700 hover:bg-stone-600 text-stone-300 font-bold rounded-lg">메뉴로 나가기</button>
+            </div>
+        </div>
+    </div>
+
     <div id="choice-result-overlay" class="hidden fixed inset-0 bg-black/80 z-[12000] flex items-center justify-center p-6">
         <div class="bg-white rounded-2xl shadow-2xl max-w-xl w-full p-6 space-y-4 text-center">
             <h2 id="choice-result-title" class="text-2xl font-extrabold text-stone-800"></h2>
@@ -995,7 +1025,10 @@
             </div>
             <div class="text-right flex flex-col items-end">
                 <span id="game-year" class="block text-2xl font-serif text-amber-500 font-bold">START</span>
-                <button onclick="showTitles()" class="text-xs text-stone-400 hover:text-stone-200 underline mt-1">🏆 업적 보기</button>
+                <div class="flex gap-3 mt-1">
+                    <button id="minigame-menu-btn" onclick="showMinigameMenu()" class="text-xs text-amber-400 hover:text-amber-300 underline hidden font-bold">🎮 미니게임</button>
+                    <button onclick="showTitles()" class="text-xs text-stone-400 hover:text-stone-200 underline">🏆 업적 보기</button>
+                </div>
             </div>
         </div>
 
@@ -1106,7 +1139,7 @@
     </div>
 
     <div class="text-xs text-stone-400 opacity-70 mt-2 font-sans select-none">
-        역사의 선택: 광복을 향해서 made by gamtudyssam 0.016
+        역사의 선택: 광복을 향해서 made by gamtudyssam 0.017
 
     <script>
         // 칭호 데이터
@@ -1169,6 +1202,143 @@
             if (e.target === document.getElementById('title-modal')) {
                 document.getElementById('title-modal').style.display = 'none';
             }
+        }
+
+        // --- 아케이드 모드 / 미니게임 관련 ---
+        let arcadeMode = false;
+        let arcadeGameType = '';
+        let arcadeStartTime = 0;
+
+        const MINIGAME_LIST = [
+            { id: 'bear_game', title: "웅녀의 인내", icon: "🐻", desc: "쑥과 마늘을 먹으며 버티세요 (무한 모드)", scoreType: 'score' },
+            { id: 'river_game', title: "주몽의 탈출", icon: "🐎", desc: "추격을 피해 강을 건너세요 (타임 어택)", scoreType: 'time_low' },
+            { id: 'defense_game', title: "삼별초 방어전", icon: "🏹", desc: "몽골군을 막아내세요 (무한 웨이브)", scoreType: 'score' },
+            { id: 'faction_balance_game', title: "탕평책 균형", icon: "⚖️", desc: "붕당의 균형을 유지하세요 (무한 모드)", scoreType: 'time_high' },
+            { id: 'heung_game', title: "척화비 땅따먹기", icon: "🔒", desc: "이양선을 피해 땅을 확보하세요 (타임 어택)", scoreType: 'time_low' },
+            { id: 'ahn_rhythm_game', title: "안중근의 거사", icon: "🔫", desc: "정확한 타이밍에 저격하세요 (고득점 도전)", scoreType: 'score' }
+        ];
+
+        function getMinigameScore(id) {
+            return parseInt(localStorage.getItem(`mg_score_${id}`)) || 0;
+        }
+
+        function saveMinigameScore(id, score, type) {
+            const current = getMinigameScore(id);
+            let isBest = false;
+            if (type === 'time_low') { // 시간이 낮을수록 좋음 (0이면 기록 없음)
+                if (current === 0 || (score > 0 && score < current)) {
+                    localStorage.setItem(`mg_score_${id}`, score);
+                    isBest = true;
+                }
+            } else { // 점수/시간이 높을수록 좋음
+                if (score > current) {
+                    localStorage.setItem(`mg_score_${id}`, score);
+                    isBest = true;
+                }
+            }
+            return isBest;
+        }
+
+        function formatScore(score, type) {
+            if (type === 'time_low' || type === 'time_high') {
+                return `${(score / 1000).toFixed(2)}초`;
+            }
+            return `${score}점`;
+        }
+
+        function showMinigameMenu() {
+            const listEl = document.getElementById('minigame-list');
+            listEl.innerHTML = '';
+
+            MINIGAME_LIST.forEach(game => {
+                const score = getMinigameScore(game.id);
+                const scoreText = score > 0 ? formatScore(score, game.scoreType) : "기록 없음";
+                
+                const btn = document.createElement('div');
+                btn.className = "bg-stone-700 p-4 rounded-xl border border-stone-600 hover:bg-stone-600 transition-colors cursor-pointer flex flex-col items-center gap-2 group";
+                btn.onclick = () => startArcadeGame(game.id);
+                btn.innerHTML = `
+                    <div class="text-4xl mb-2 group-hover:scale-110 transition-transform">${game.icon}</div>
+                    <h3 class="font-bold text-lg text-amber-400">${game.title}</h3>
+                    <p class="text-xs text-stone-400 text-center mb-2">${game.desc}</p>
+                    <div class="mt-auto bg-black/30 px-3 py-1 rounded text-sm text-green-400 font-mono">
+                        🏆 Best: ${scoreText}
+                    </div>
+                `;
+                listEl.appendChild(btn);
+            });
+
+            document.getElementById('minigame-modal').classList.remove('hidden');
+            lockBodyScroll(true);
+        }
+
+        function closeMinigameMenu() {
+            document.getElementById('minigame-modal').classList.add('hidden');
+            lockBodyScroll(false);
+        }
+
+        function startArcadeGame(gameId) {
+            closeMinigameMenu();
+            arcadeMode = true;
+            arcadeGameType = gameId;
+            arcadeStartTime = Date.now();
+            startMinigame(gameId, null); // nextScene null -> 아케이드 모드 인식
+        }
+
+        function showArcadeResult(score, isWin) {
+            const game = MINIGAME_LIST.find(g => g.id === arcadeGameType);
+            const isBest = saveMinigameScore(arcadeGameType, score, game.scoreType);
+            
+            const overlay = document.getElementById('arcade-result-overlay');
+            const titleEl = document.getElementById('arcade-result-title');
+            const iconEl = document.getElementById('arcade-result-icon');
+            
+            if (isWin) {
+                 titleEl.textContent = "GAME CLEAR!";
+                 titleEl.className = "text-3xl font-bold text-green-400 mb-2";
+                 iconEl.textContent = "🏆";
+            } else {
+                 titleEl.textContent = "GAME OVER";
+                 titleEl.className = "text-3xl font-bold text-red-500 mb-2";
+                 iconEl.textContent = "💀";
+            }
+            
+            document.getElementById('arcade-result-score').textContent = `Score: ${formatScore(score, game.scoreType)}`;
+            
+            const bestScore = getMinigameScore(arcadeGameType);
+            document.getElementById('arcade-result-best').textContent = `Best: ${formatScore(bestScore, game.scoreType)} ${isBest ? "(New Record!)" : ""}`;
+
+            const retryBtn = document.getElementById('arcade-retry-btn');
+            const newRetryBtn = retryBtn.cloneNode(true);
+            retryBtn.parentNode.replaceChild(newRetryBtn, retryBtn);
+            
+            newRetryBtn.onclick = () => {
+                closeArcadeResult();
+                startArcadeGame(arcadeGameType);
+            };
+
+            overlay.classList.remove('hidden');
+        }
+
+        function closeArcadeResult() {
+            document.getElementById('arcade-result-overlay').classList.add('hidden');
+            if (!arcadeMode) return; 
+            
+            arcadeMode = false;
+            arcadeGameType = '';
+            
+            const overlays = [
+                'minigame-overlay', 'river-game-overlay', 'defense-game-window', 
+                'faction-game-overlay', 'heung-game-overlay', 'ahn-game-overlay'
+            ];
+            overlays.forEach(id => {
+                const el = document.getElementById(id);
+                if(el) {
+                    el.classList.add('hidden');
+                    el.style.display = 'none';
+                }
+            });
+            showMinigameMenu();
         }
 
         const gameData = {
@@ -2876,6 +3046,12 @@
             clearInterval(defenseInterval);
             clearInterval(defenseMoveInterval);
 
+            if (arcadeMode) {
+                // 방어전은 점수가 0 이상이면 일단 기록
+                showArcadeResult(defenseScore, true);
+                return;
+            }
+
             const resultEl = document.getElementById('defense-result');
             resultEl.classList.remove('hidden');
             resultEl.style.display = 'flex';
@@ -3062,6 +3238,8 @@
 
             const { noronCount, soronCount } = getFactionCounts();
             const diff = Math.abs(noronCount - soronCount);
+            const total = Math.max(noronCount + soronCount, 1);
+            const balanceRatio = Math.max(0, 1 - diff / total);
 
             if (diff <= FACTION_TOLERANCE) {
                 // 누적 합산 (연속 유지가 아니라 총 60초 모으면 성공)
@@ -3070,13 +3248,28 @@
 
             updateFactionGauge();
 
-            if (factionBalanceTime >= FACTION_TARGET) {
-                endFactionGame();
+            if (arcadeMode) {
+                // 아케이드 모드: 균형이 완전히 무너지면 종료 (비율 10% 이하 등)
+                // 또는 그냥 계속 진행하다가 유저가 포기? 아니면 시간 기록이 목표니까
+                // 균형이 너무 깨지면(tolerance의 3배 이상?) 종료
+                if (diff > FACTION_TOLERANCE * 3) {
+                    endFactionGame(true); // 기록 저장
+                }
+            } else {
+                if (factionBalanceTime >= FACTION_TARGET) {
+                    endFactionGame();
+                }
             }
         }
 
-        function endFactionGame() {
+        function endFactionGame(success = true) {
             stopFactionGame();
+            
+            if (arcadeMode) {
+                showArcadeResult(factionBalanceTime, success);
+                return;
+            }
+
             const resultEl = document.getElementById('faction-result');
             resultEl.style.display = 'flex';
         }
@@ -3666,6 +3859,17 @@
             clearInterval(hgLoop);
             clearInterval(hgShipInterval);
             window.removeEventListener('keydown', handleHeungKey);
+            window.removeEventListener('resize', resizeHeungArea);
+
+            if (arcadeMode) {
+                if (success) {
+                    const time = Date.now() - arcadeStartTime;
+                    showArcadeResult(time, true);
+                } else {
+                    showArcadeResult(0, false);
+                }
+                return;
+            }
 
             if (success) {
                 document.getElementById('heung-result').style.display = 'flex';
@@ -3674,12 +3878,13 @@
             }
         }
 
+        let ahnArcadeInterval;
+
         // --- 안중근 리듬 미니게임 ---
         function startAhnGame() {
             stopAhnGame();
             ahnActive = true;
             ahnCurrent = 0;
-            ahnBeats = generateBeats();
             ahnNotes = [];
             ahnNextScene = mgNextScene;
             lockBodyScroll(true);
@@ -3726,8 +3931,42 @@
             recalcAhnLayout();
             window.addEventListener('resize', recalcAhnLayout);
 
-            scheduleAhnBeats();
+            if (arcadeMode) {
+                // 아케이드 모드: 무한 생성
+                spawnAhnArcadeNote(); // 즉시 하나 생성
+                ahnArcadeInterval = setInterval(spawnAhnArcadeNote, 1200);
+            } else {
+                ahnBeats = generateBeats();
+                scheduleAhnBeats();
+            }
+            
             ahnLoop = setInterval(updateAhnNotes, 16);
+        }
+
+        function spawnAhnArcadeNote() {
+            if (!ahnActive) return;
+            const lane = document.querySelector('.ahn-lane');
+            const note = document.createElement('div');
+            note.className = 'ahn-note';
+            
+            // 점수에 따라 난이도(속도) 증가
+            const difficulty = Math.min(3, 1 + ahnCurrent * 0.05); 
+            const speed = (4 + Math.random() * 2) * difficulty;
+
+            if (speed > 8) note.classList.add('fast');
+            else if (speed < 5) note.classList.add('slow');
+
+            const laneWidth = lane.getBoundingClientRect().width;
+            const offset = (Math.random() - 0.5) * (laneWidth * 0.18);
+            note.style.left = `calc(50% + ${offset}px)`;
+            lane.appendChild(note);
+
+            ahnNotes.push({ el: note, y: -80, speed, hit: false });
+
+            // 스폰 간격 조절 (점차 빨라짐)
+            clearInterval(ahnArcadeInterval);
+            const nextInterval = Math.max(400, 1200 - ahnCurrent * 30);
+            ahnArcadeInterval = setInterval(spawnAhnArcadeNote, nextInterval);
         }
 
         function stopAhnGame() {
@@ -3738,6 +3977,7 @@
             ahnNotes.forEach(n => n.el.remove());
             ahnNotes = [];
             clearInterval(ahnLoop);
+            clearInterval(ahnArcadeInterval);
             window.removeEventListener('resize', recalcAhnLayout);
         }
 
@@ -3796,8 +4036,12 @@
                 target.el.style.opacity = '0.15';
                 setTimeout(() => target.el.remove(), 120);
                 ahnCurrent++;
-                flashAhnLights(ahnCurrent);
-                if (ahnCurrent >= 3) {
+                
+                // 아케이드 모드에서는 라이트 대신 점수 팝업 등으로 대체하면 좋겠지만
+                // 일단 라이트는 3개뿐이므로 반복 점등
+                flashAhnLights(arcadeMode ? (ahnCurrent % 3) + 1 : ahnCurrent);
+                
+                if (!arcadeMode && ahnCurrent >= 3) {
                     finishAhnGame();
                 }
             }
@@ -3805,6 +4049,15 @@
 
         function finishAhnGame() {
             if (!ahnActive) return;
+            
+            if (arcadeMode) {
+                // 아케이드 모드에서는 실패했을 때만 호출됨 (updateAhnNotes에서 호출)
+                // 성공적으로 맞춘 횟수(ahnCurrent)가 점수
+                stopAhnGame();
+                showArcadeResult(ahnCurrent, false); // 실패해서 끝났지만 점수는 기록
+                return;
+            }
+
             const ok = document.getElementById('ahn-result-ok');
             const fail = document.getElementById('ahn-result-fail');
             if (ahnCurrent >= 3) {
@@ -3831,7 +4084,11 @@
                 if (n.hit) return false;
                 if (n.y - ahnHitY > 70) {
                     // 미스
-                    finishAhnGame();
+                    if (arcadeMode) {
+                        finishAhnGame(); // 아케이드 모드 종료
+                    } else {
+                        finishAhnGame();
+                    }
                     n.el.remove();
                     return false;
                 }
@@ -3868,17 +4125,28 @@
             mgActive = true;
             lockBodyScroll(true);
 
+            if (arcadeMode) {
+                 mgLives = 3;
+            }
+
             const overlay = document.getElementById('minigame-overlay');
             const scoreEl = document.getElementById('mg-score');
             const resultEl = document.getElementById('mg-result');
             const gameArea = document.getElementById('mg-game-area');
             const proceedBtn = document.getElementById('mg-proceed-btn');
+            const titleText = document.getElementById('mg-title-text');
 
             overlay.style.display = 'block';
             resultEl.classList.add('hidden');
             scoreEl.textContent = '0';
             gameArea.innerHTML = ''; // 기존 아이템 제거
             
+            if (arcadeMode) {
+                titleText.innerHTML = `무한 모드: <span id="mg-score">0</span> <span class="text-red-400 text-sm ml-2">(남은 기회: <span id="mg-lives">3</span>)</span>`;
+            } else {
+                titleText.innerHTML = `인내심: <span id="mg-score">0</span> / 100`;
+            }
+
             // 기존 이벤트 리스너 제거 (중복 방지)
             const newProceedBtn = proceedBtn.cloneNode(true);
             proceedBtn.parentNode.replaceChild(newProceedBtn, proceedBtn);
@@ -4173,6 +4441,16 @@
         function endRiverGame(success) {
             stopRiverGame();
 
+            if (arcadeMode) {
+                if (success) {
+                    const time = Date.now() - arcadeStartTime;
+                    showArcadeResult(time, true);
+                } else {
+                    showArcadeResult(0, false);
+                }
+                return;
+            }
+
             if (success) {
                 const resultEl = document.getElementById('rg-result');
                 resultEl.classList.remove('hidden');
@@ -4266,15 +4544,28 @@
             gameArea.appendChild(img);
         }
 
+        let mgLives = 3;
+
         function updateScore(change) {
             mgScore += change;
             if (mgScore < 0) mgScore = 0;
             
             const scoreEl = document.getElementById('mg-score');
-            scoreEl.textContent = mgScore;
+            if (scoreEl) scoreEl.textContent = mgScore;
             
-            if (mgScore >= 100) {
-                endMinigame(true);
+            if (arcadeMode) {
+                if (change < 0) {
+                    mgLives--;
+                    const livesEl = document.getElementById('mg-lives');
+                    if(livesEl) livesEl.textContent = mgLives;
+                    if (mgLives <= 0) {
+                        endMinigame(true); // 아케이드 모드 종료 (성공 판정으로 점수 기록)
+                    }
+                }
+            } else {
+                if (mgScore >= 100) {
+                    endMinigame(true);
+                }
             }
         }
 
@@ -4294,6 +4585,11 @@
             mgActive = false;
             clearInterval(mgInterval);
             
+            if (arcadeMode) {
+                showArcadeResult(mgScore, true); // 항상 결과창 표시
+                return;
+            }
+
             if (success) {
                 const resultEl = document.getElementById('mg-result');
                 resultEl.classList.remove('hidden');
@@ -4314,6 +4610,16 @@
         let turnCount = 0;
 
         function renderScene(sceneId) {
+            // 진엔딩 체크 및 해금
+            if (sceneId === 'liberation_day') {
+                localStorage.setItem('korean_history_true_ending', 'true');
+            }
+            // 미니게임 버튼 노출 여부 체크
+            if (localStorage.getItem('korean_history_true_ending') === 'true') {
+                const btn = document.getElementById('minigame-menu-btn');
+                if (btn) btn.classList.remove('hidden');
+            }
+
             const data = getSafeData(sceneId);
             const container = document.getElementById('game-container');
             const choicesDiv = document.getElementById('choices');
