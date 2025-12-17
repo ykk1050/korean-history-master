@@ -780,8 +780,8 @@
         <div class="absolute top-4 left-4 bg-black/60 text-white p-4 rounded-lg z-10 border border-white/30 backdrop-blur-sm">
             <div id="mg-title-text" class="text-3xl font-bold mb-2 text-yellow-400 select-none cursor-pointer">인내심: <span id="mg-score">0</span> / 100</div>
             <div class="text-sm text-gray-200">
-                <span class="text-green-400 font-bold">● 쑥 & 마늘: +1점</span><br>
-                <span class="text-red-400 font-bold">● 고기 & 벼: -1점</span>
+                <span class="text-green-400 font-bold">● 쑥 & 마늘: +2점</span><br>
+                <span class="text-red-400 font-bold">● 고기 & 벼: -2점</span>
             </div>
         </div>
         
@@ -1103,7 +1103,7 @@
     </div>
 
     <div class="text-xs text-stone-400 opacity-70 mt-2 font-sans select-none">
-        역사의 선택: 광복을 향해서 made by gamtudyssam 0.013
+        역사의 선택: 광복을 향해서 made by gamtudyssam 0.014
 
     <script>
         // 칭호 데이터
@@ -4246,7 +4246,7 @@
             const clickHandler = (e) => {
                 if (!mgActive) return;
                 
-                const change = itemData.type === 'good' ? 1 : -1;
+                const change = itemData.type === 'good' ? 2 : -2;
                 updateScore(change);
                 showScorePopup(e.clientX, e.clientY, change);
                 img.remove();
