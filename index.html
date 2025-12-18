@@ -977,6 +977,37 @@
     </div>
 
     <!-- 올바른 선택 결과 오버레이 -->
+    <!-- 명예의 전당 (태극기 워드클라우드) 모달 -->
+    <div id="hof-modal" class="modal hidden fixed inset-0 bg-black/90 z-[15000] flex items-center justify-center p-4">
+        <div class="bg-stone-100 rounded-2xl shadow-2xl max-w-5xl w-full p-6 text-stone-800 border border-stone-300 relative flex flex-col max-h-[95vh]">
+            <button onclick="closeHofModal()" class="absolute top-4 right-4 text-stone-500 hover:text-stone-800 text-3xl font-bold z-10">✕</button>
+            
+            <h2 class="text-3xl font-extrabold text-stone-900 mb-2 text-center font-serif">🇰🇷 명예의 전당</h2>
+            <p class="text-center text-stone-600 mb-4">광복을 이뤄낸 영웅들의 이름이 모여 태극기를 완성합니다. 최근 1시간 이내에 등록된 이름은 특별하게 표시됩니다.</p>
+            
+            <!-- 입력 폼 (아직 등록 안한 경우) -->
+            <div id="hof-input-area" class="flex flex-col items-center gap-3 mb-4 hidden">
+                <div class="flex gap-2 w-full max-w-md">
+                    <input type="text" id="hof-nickname" placeholder="독립 유공자(닉네임) 입력" class="flex-1 px-4 py-2 border border-stone-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 font-bold" maxlength="10">
+                    <button onclick="submitHofName()" class="px-6 py-2 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-lg whitespace-nowrap">등록</button>
+                </div>
+                <p id="hof-registration-info" class="text-xs text-stone-500">※ 욕설이나 부적절한 단어는 삭제될 수 있습니다.</p>
+            </div>
+
+            <!-- 태극기 캔버스 영역 -->
+            <div class="flex-1 bg-white rounded-xl shadow-inner border border-stone-200 relative overflow-hidden flex items-center justify-center min-h-[400px]" id="hof-canvas-container">
+                <canvas id="hof-canvas" class="max-w-full max-h-full"></canvas>
+                <div id="hof-loading" class="absolute inset-0 flex items-center justify-center bg-white/80 z-10 hidden">
+                    <span class="text-xl font-bold text-stone-500 animate-pulse">영웅들의 이름을 불러오는 중...</span>
+                </div>
+            </div>
+            
+            <div class="mt-4 text-center text-stone-400 text-xs">
+                Total Heroes: <span id="hof-count">0</span>
+            </div>
+        </div>
+    </div>
+
     <!-- 미니게임 선택 모달 -->
     <div id="minigame-modal" class="modal hidden fixed inset-0 bg-black/90 z-[13000] flex items-center justify-center p-4">
         <div class="bg-stone-800 rounded-2xl shadow-2xl max-w-4xl w-full p-6 text-stone-100 max-h-[90vh] overflow-y-auto border border-stone-600">
@@ -1027,6 +1058,7 @@
                 <span id="game-year" class="block text-2xl font-serif text-amber-500 font-bold">START</span>
                 <div class="flex gap-3 mt-1">
                     <button id="minigame-menu-btn" onclick="showMinigameMenu()" class="text-xs text-amber-400 hover:text-amber-300 underline hidden font-bold">🎮 미니게임</button>
+                    <button id="hof-menu-btn" onclick="openHofModal(false)" class="text-xs text-blue-400 hover:text-blue-300 underline hidden font-bold">🇰🇷 명예의 전당</button>
                     <button onclick="showTitles()" class="text-xs text-stone-400 hover:text-stone-200 underline">🏆 업적 보기</button>
                 </div>
             </div>
@@ -1139,7 +1171,7 @@
     </div>
 
     <div class="text-xs text-stone-400 opacity-70 mt-2 font-sans select-none">
-        역사의 선택: 광복을 향해서 made by gamtudyssam 0.017
+        역사의 선택: 광복을 향해서 made by gamtudyssam 0.018
 
     <script>
         // 칭호 데이터
@@ -1165,6 +1197,17 @@
                 localStorage.setItem('koreanHistoryTitles', JSON.stringify(unlockedTitles));
                 showToast(`🏆 칭호 획득: ${titles[id].name}`);
             }
+        }
+
+        function checkTrueEnding() {
+             // 트루엔딩 기록 체크
+             if (localStorage.getItem('korean_history_true_ending') === 'true') {
+                 const btn = document.getElementById('minigame-menu-btn');
+                 if (btn) btn.classList.remove('hidden');
+                 
+                 const hofBtn = document.getElementById('hof-menu-btn');
+                 if (hofBtn) hofBtn.classList.remove('hidden');
+             }
         }
 
         function showToast(msg) {
@@ -1217,6 +1260,329 @@
             { id: 'heung_game', title: "척화비 땅따먹기", icon: "🔒", desc: "이양선을 피해 땅을 확보하세요 (타임 어택)", scoreType: 'time_low' },
             { id: 'ahn_rhythm_game', title: "안중근의 거사", icon: "🔫", desc: "정확한 타이밍에 저격하세요 (고득점 도전)", scoreType: 'score' }
         ];
+
+        
+        // ★ 구글 Apps Script 배포 URL을 여기에 입력하세요 ★
+        // 예: const GAS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwZZla4aJaorZIg0Llj6VwVnx8sL8E758RAm4Hpm5W5ax0scr0tAb1TPl9KSRUSiPIN/exec";
+        const GAS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwZZla4aJaorZIg0Llj6VwVnx8sL8E758RAm4Hpm5W5ax0scr0tAb1TPl9KSRUSiPIN/exec"; 
+
+        // --- 명예의 전당 (태극기 워드클라우드) ---
+        function openHofModal(canRegister = false) {
+            const modal = document.getElementById('hof-modal');
+            const inputArea = document.getElementById('hof-input-area');
+
+            modal.classList.remove('hidden');
+            lockBodyScroll(true);
+
+            // 트루엔딩 클리어 횟수와 등록 횟수로 남은 등록 기회 계산
+            const trueEndingCount = parseInt(localStorage.getItem('korean_history_true_ending_count') || '0');
+            const registeredCount = parseInt(localStorage.getItem('korean_history_hof_registered_count') || '0');
+            const remainingRegistrations = trueEndingCount - registeredCount;
+
+            if (canRegister && remainingRegistrations > 0) {
+                inputArea.classList.remove('hidden');
+                document.getElementById('hof-registration-info').textContent = `남은 등록 기회: ${remainingRegistrations}회`;
+            } else {
+                inputArea.classList.add('hidden');
+                if (canRegister && remainingRegistrations <= 0) {
+                    document.getElementById('hof-registration-info').textContent = '등록 기회를 모두 사용했습니다.';
+                }
+            }
+
+            // 목록 불러오기 및 그리기
+            fetchAndDrawHof();
+        }
+
+        function closeHofModal() {
+            document.getElementById('hof-modal').classList.add('hidden');
+            lockBodyScroll(false);
+        }
+
+        function submitHofName() {
+            if (!GAS_SCRIPT_URL) {
+                alert("개발자 설정: Google Apps Script URL이 설정되지 않았습니다.");
+                return;
+            }
+
+            // 남은 등록 기회 확인
+            const trueEndingCount = parseInt(localStorage.getItem('korean_history_true_ending_count') || '0');
+            const registeredCount = parseInt(localStorage.getItem('korean_history_hof_registered_count') || '0');
+            const remainingRegistrations = trueEndingCount - registeredCount;
+
+            if (remainingRegistrations <= 0) {
+                alert("등록 기회를 모두 사용했습니다.");
+                return;
+            }
+
+            const input = document.getElementById('hof-nickname');
+            const name = input.value.trim();
+
+            if (!name) {
+                alert("닉네임을 입력해주세요.");
+                return;
+            }
+            if (name.length > 10) {
+                alert("닉네임은 10글자 이내로 입력해주세요.");
+                return;
+            }
+
+            // 등록 요청
+            showToast("이름을 등록 중입니다...");
+
+            const url = `${GAS_SCRIPT_URL}?action=add&name=${encodeURIComponent(name)}`;
+
+            fetch(url)
+            .then(res => res.json())
+            .then(data => {
+                if (data.result === 'success') {
+                    showToast("명예의 전당에 등록되었습니다!");
+                    // 등록 횟수 증가
+                    const newRegisteredCount = registeredCount + 1;
+                    localStorage.setItem('korean_history_hof_registered_count', newRegisteredCount.toString());
+                    input.value = ''; // 입력창 초기화
+                    openHofModal(true); // 모달 다시 열어서 남은 기회 업데이트
+                    fetchAndDrawHof(); // 다시 그리기
+                } else {
+                    alert("등록에 실패했습니다. 잠시 후 다시 시도해주세요.");
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                alert("서버 연결 오류가 발생했습니다.");
+            });
+        }
+
+        let hofNames = [];
+
+        function fetchAndDrawHof() {
+            const loading = document.getElementById('hof-loading');
+            loading.classList.remove('hidden');
+
+            hofNames = []; // 초기화 (기본 독립운동가 이름 제거)
+
+            if (!GAS_SCRIPT_URL) {
+                // URL이 없으면 빈 상태로 태극기 실루엣만 그림
+                drawTaegeukgiCloud();
+                loading.classList.add('hidden');
+                return;
+            }
+
+            fetch(`${GAS_SCRIPT_URL}`) // 기본 GET은 전체 목록 조회
+            .then(res => {
+                if (!res.ok) {
+                    throw new Error(`HTTP error! status: ${res.status}`);
+                }
+                return res.json();
+            })
+            .then(data => {
+                console.log('GAS 데이터:', data); // 디버깅용
+                // data는 이름 배열이어야 함
+                if (Array.isArray(data)) {
+                    hofNames = data;
+                    document.getElementById('hof-count').textContent = hofNames.length;
+                    drawTaegeukgiCloud();
+                } else {
+                    console.error('데이터 형식이 배열이 아닙니다:', data);
+                    drawTaegeukgiCloud();
+                }
+                loading.classList.add('hidden');
+            })
+            .catch(err => {
+                console.error('GAS 데이터 가져오기 실패:', err);
+                loading.classList.add('hidden');
+                // 에러 나도 실루엣은 그림
+                drawTaegeukgiCloud();
+            });
+        }
+
+        function drawTaegeukgiCloud() {
+            const container = document.getElementById('hof-canvas-container');
+            const canvas = document.getElementById('hof-canvas');
+            const ctx = canvas.getContext('2d');
+            
+            // 캔버스 크기 맞춤
+            const rect = container.getBoundingClientRect();
+            const w = rect.width;
+            const h = rect.height; 
+            
+            // 태극기 표준 비율 3:2
+            let flagW = w;
+            let flagH = w * 2 / 3;
+            if (flagH > h) {
+                flagH = h;
+                flagW = h * 3 / 2;
+            }
+
+            canvas.width = flagW;
+            canvas.height = flagH;
+            
+            // 1. 색상 매핑을 위한 가상 캔버스 생성
+            const mapCanvas = document.createElement('canvas');
+            mapCanvas.width = flagW;
+            mapCanvas.height = flagH;
+            const mapCtx = mapCanvas.getContext('2d');
+            
+            drawFlagMap(mapCtx, flagW, flagH);
+            
+            // 픽셀 데이터 가져오기
+            const mapData = mapCtx.getImageData(0, 0, flagW, flagH).data;
+
+            // 2. 실제 캔버스 초기화
+            ctx.clearRect(0, 0, flagW, flagH);
+            
+            // 배경
+            ctx.fillStyle = '#FDFDFD';
+            ctx.fillRect(0, 0, flagW, flagH);
+
+            // 3. 태극기 실루엣 (연하게 밑그림) 그리기
+            ctx.globalAlpha = 0.15; // 아주 연하게
+            ctx.drawImage(mapCanvas, 0, 0);
+            ctx.globalAlpha = 1.0; // 복구
+
+            if (hofNames.length === 0) return;
+
+            // 4. 이름 배치
+            // 이름이 적을 땐 크게, 많을 땐 작게
+            const baseFontSize = Math.max(10, Math.min(32, Math.sqrt((flagW * flagH) / (hofNames.length * 20))));
+            
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            
+            // 셔플
+            const shuffled = [...hofNames].sort(() => Math.random() - 0.5);
+            
+            let placedCount = 0;
+            const maxTries = 100; // 시도 횟수 증가
+
+            shuffled.forEach(entry => {
+                // 데이터 형식 대응 (문자열 또는 객체)
+                let name = typeof entry === 'object' ? entry.name : entry;
+                let isRecent = false;
+
+                if (typeof entry === 'object' && entry.date) {
+                    try {
+                        const entryDate = new Date(entry.date);
+                        const now = new Date();
+                        const diffMs = now - entryDate;
+
+                        console.log(`이름: ${name}, 등록시간: ${entryDate}, 경과시간: ${diffMs}ms`); // 디버깅용
+
+                        // 1시간 이내 (60 * 60 * 1000ms = 3,600,000ms)
+                        if (diffMs < 3600000 && diffMs >= 0) {
+                            isRecent = true;
+                            console.log(`${name}는 최근 등록자입니다!`);
+                        }
+                    } catch (dateError) {
+                        console.error('날짜 파싱 오류:', dateError, entry.date);
+                    }
+                }
+
+                let fontSize = baseFontSize * (0.8 + Math.random() * 0.6);
+                ctx.font = `bold ${fontSize}px "Nanum Myeongjo", serif`; 
+                
+                let placed = false;
+                for (let i = 0; i < maxTries; i++) {
+                    const x = Math.floor(Math.random() * flagW);
+                    const y = Math.floor(Math.random() * flagH);
+                    
+                    // 맵에서 색상 샘플링
+                    const index = (y * flagW + x) * 4;
+                    const r = mapData[index];
+                    const g = mapData[index + 1];
+                    const b = mapData[index + 2];
+                    const a = mapData[index + 3];
+
+                    // 흰색 배경이 아닌 유색 영역(태극/건곤감리) 찾기
+                    if (a > 100 && r + g + b < 760) { 
+                        // 색상 결정
+                        let fillStyle = '#000';
+                        if (r > 200 && b < 100) fillStyle = '#CD2E3A'; // Red
+                        else if (b > 150 && r < 100) fillStyle = '#0047A0'; // Blue
+                        else if (r < 50 && g < 50 && b < 50) fillStyle = '#111111'; // Black
+                        
+                        ctx.fillStyle = fillStyle;
+                        ctx.save();
+                        ctx.translate(x, y);
+                        // 약간의 회전
+                        ctx.rotate((Math.random() - 0.5) * 0.5);
+                        
+                        // 최근 등록자 효과: 그림자(광채) + 별
+                        if (isRecent) {
+                            ctx.shadowColor = "#FFD700"; // Gold color
+                            ctx.shadowBlur = 10;
+                            // 이름 뒤에 별 추가
+                            ctx.fillText(name + "✨", 0, 0);
+                        } else {
+                            ctx.fillText(name, 0, 0);
+                        }
+                        
+                        ctx.restore();
+                        placed = true;
+                        placedCount++;
+                        break;
+                    }
+                }
+            });
+        }
+
+        function drawFlagMap(ctx, w, h) {
+            // 흰 배경
+            ctx.fillStyle = '#FFFFFF';
+            ctx.fillRect(0, 0, w, h);
+            
+            const cx = w / 2;
+            const cy = h / 2;
+            const r = h / 2.5; // 태극 반지름
+
+            // 태극 (빨강/파랑)
+            // 1. 하단 반원 (파랑)
+            ctx.fillStyle = '#0047A0'; 
+            ctx.beginPath();
+            ctx.arc(cx, cy, r, 0, Math.PI, false);
+            ctx.fill();
+
+            // 2. 상단 반원 (빨강)
+            ctx.fillStyle = '#CD2E3A'; 
+            ctx.beginPath();
+            ctx.arc(cx, cy, r, Math.PI, 0, false);
+            ctx.fill();
+
+            // 3. 물결 (간단화된 태극 문양: 좌측하단 빨강 원, 우측상단 파랑 원) -> 이 구조가 물결을 만듦
+            // 빨강이 좌측으로 파고듦 (중앙 왼쪽 원)
+            ctx.fillStyle = '#CD2E3A';
+            ctx.beginPath();
+            ctx.arc(cx - r/2, cy, r/2, 0, Math.PI * 2);
+            ctx.fill();
+
+            // 파랑이 우측으로 파고듦 (중앙 오른쪽 원)
+            ctx.fillStyle = '#0047A0';
+            ctx.beginPath();
+            ctx.arc(cx + r/2, cy, r/2, 0, Math.PI * 2);
+            ctx.fill();
+
+            // 4. 건곤감리 (검정) - 텍스트 배치를 위한 덩어리 영역으로 그리기
+            ctx.fillStyle = '#000000';
+            const barW = r * 1.0; // 너비
+            const barH = r * 0.6; // 높이
+            const dist = r * 1.6; // 중심 거리
+
+            // 건 (좌상단)
+            drawRotatedRect(ctx, cx - dist, cy - dist/1.5, barW, barH, Math.PI/5.5);
+            // 곤 (우하단)
+            drawRotatedRect(ctx, cx + dist, cy + dist/1.5, barW, barH, Math.PI/5.5);
+            // 감 (우상단)
+            drawRotatedRect(ctx, cx + dist, cy - dist/1.5, barW, barH, -Math.PI/5.5);
+            // 리 (좌하단)
+            drawRotatedRect(ctx, cx - dist, cy + dist/1.5, barW, barH, -Math.PI/5.5);
+        }
+
+        function drawRotatedRect(ctx, x, y, w, h, angle) {
+            ctx.save();
+            ctx.translate(x, y);
+            ctx.rotate(angle);
+            ctx.fillRect(-w/2, -h/2, w, h);
+            ctx.restore();
+        }
 
         function getMinigameScore(id) {
             return parseInt(localStorage.getItem(`mg_score_${id}`)) || 0;
@@ -1341,6 +1707,8 @@
             showMinigameMenu();
         }
 
+        // 게임 데이터 정의
+        // 게임 데이터 정의
         const gameData = {
             // ==========================================
             // 1. 고조선 및 초기 국가
@@ -2230,7 +2598,10 @@
                 desc: "1945년 8월 15일, 라디오에서 일본 천황의 항복 방송이 흘러나옵니다. 거리로 뛰쳐나온 사람들은 태극기를 흔들며 '대한 독립 만세'를 외칩니다.<br><br>당신의 끈질긴 투쟁과 올바른 선택 덕분에 우리 민족은 빛을 되찾았습니다(光復). 수많은 선조들의 피와 땀이 헛되지 않았습니다. 역사의 수호자여, 수고하셨습니다!",
                 progress: 100, icon: "🌞",
                 unlock: 'history_guardian',
-                choices: [{ text: "위대한 여정을 다시 시작하기", next: "start", style: "restart" }]
+                choices: [
+                    { text: "🇰🇷 명예의 전당에 이름 남기기", onclick: "openHofModal(true)", style: "special" },
+                    { text: "위대한 여정을 다시 시작하기", next: "start", style: "restart" }
+                ]
             },
 
             // === 배드 엔딩들 (완전 실패) ===
@@ -2520,7 +2891,7 @@
                 title: "선택 결과: 자주 회복 모색",
                 desc: "외세 의존을 끊고 자주 국방력을 기르며 주권 회복을 노렸습니다."
             },
-            "외군군이 조선에 들어올 수 있으니 정부의 말을 받아들여 일단 해산했다가 혹시 모를 외국군의 침략에 대비한다.": {
+            "외국군이 조선에 들어올 수 있으니 정부의 말을 받아들여 일단 해산했다가 혹시 모를 외국군의 침략에 대비한다.": {
                 title: "선택 결과: 침략 명분 차단",
                 desc: "외국의 침략이 더 큰 문제라고 판단한 동학농민군은 우선 해산하였으나, 외국군이 조선에 들어오게 되자, 다시 봉기하여 맞서 싸웠습니다. 그러나 안타깝게도 그들은 결국 패배하여 진압되었습니다."
             },
@@ -4603,6 +4974,21 @@
             renderScene(mgNextScene);
         });
 
+        // 게임 시작 시 초기화
+        window.addEventListener('DOMContentLoaded', () => {
+            // 초기 버튼 상태 체크
+            if (localStorage.getItem('korean_history_true_ending') === 'true') {
+                const btn = document.getElementById('minigame-menu-btn');
+                if (btn) btn.classList.remove('hidden');
+                
+                const hofBtn = document.getElementById('hof-menu-btn');
+                if (hofBtn) hofBtn.classList.remove('hidden');
+            }
+            
+            // 기존 초기화 로직
+            startGame();
+        });
+
         function startGame() {
             renderScene('start');
         }
@@ -4613,11 +4999,17 @@
             // 진엔딩 체크 및 해금
             if (sceneId === 'liberation_day') {
                 localStorage.setItem('korean_history_true_ending', 'true');
+                // 트루엔딩 클리어 횟수 증가
+                const trueEndingCount = parseInt(localStorage.getItem('korean_history_true_ending_count') || '0');
+                localStorage.setItem('korean_history_true_ending_count', (trueEndingCount + 1).toString());
             }
             // 미니게임 버튼 노출 여부 체크
             if (localStorage.getItem('korean_history_true_ending') === 'true') {
                 const btn = document.getElementById('minigame-menu-btn');
                 if (btn) btn.classList.remove('hidden');
+                
+                const hofBtn = document.getElementById('hof-menu-btn');
+                if (hofBtn) hofBtn.classList.remove('hidden');
             }
 
             const data = getSafeData(sceneId);
@@ -4685,12 +5077,36 @@
                     console.log('Choice clicked:', choice.text, 'minigame:', choice.minigame);
                     if (choice.unlock) unlockTitle(choice.unlock);
 
+                    // onclick 속성이 있으면 실행 (커스텀 동작)
+                    if (choice.onclick) {
+                        // 간단한 함수 호출 처리
+                        try {
+                            // window 객체에 있는 함수 실행
+                            const parts = choice.onclick.split('(');
+                            const funcName = parts[0];
+                            const args = parts[1] ? parts[1].replace(')', '').split(',').map(a => a.trim().replace(/['"]/g, '')) : [];
+                            
+                            if (typeof window[funcName] === 'function') {
+                                if (args[0] === "true") window[funcName](true);
+                                else if (args[0] === "false") window[funcName](false);
+                                else window[funcName](...args);
+                            }
+                        } catch (e) {
+                            console.error("Custom action failed:", e);
+                        }
+                        return; // 씬 이동 안함
+                    }
+
                     if (choice.minigame) {
                         console.log('Starting minigame:', choice.minigame);
                         startMinigame(choice.minigame, choice.next);
                     } else {
                         // 올바른 선택(엔딩/위기 제외)일 때 방금 선택 결과 오버레이 표시
                         const currentData = data;
+                        
+                        // next가 없는 경우 (예: 단순 텍스트 팝업 등) 처리
+                        if (!choice.next) return;
+
                         const nextData = getSafeData(choice.next);
                         if (nextData.type !== 'ending' && nextData.type !== 'crisis') {
                             showChoiceResult(choice, currentData, choice.next);
