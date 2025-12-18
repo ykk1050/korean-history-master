@@ -1171,7 +1171,7 @@
     </div>
 
     <div class="text-xs text-stone-400 opacity-70 mt-2 font-sans select-none">
-        역사의 선택: 광복을 향해서 made by gamtudyssam 0.018
+        역사의 선택: 광복을 향해서 made by gamtudyssam 0.019
 
     <script>
         // 칭호 데이터
@@ -1277,15 +1277,17 @@
             // 트루엔딩 클리어 횟수와 등록 횟수로 남은 등록 기회 계산
             const trueEndingCount = parseInt(localStorage.getItem('korean_history_true_ending_count') || '0');
             const registeredCount = parseInt(localStorage.getItem('korean_history_hof_registered_count') || '0');
+
+            // 클리어 횟수만큼 등록 기회가 있고, 아직 등록하지 않은 클리어만 기회로 인정
             const remainingRegistrations = trueEndingCount - registeredCount;
 
             if (canRegister && remainingRegistrations > 0) {
                 inputArea.classList.remove('hidden');
-                document.getElementById('hof-registration-info').textContent = `남은 등록 기회: ${remainingRegistrations}회`;
+                document.getElementById('hof-registration-info').textContent = `등록 가능한 클리어 수: ${remainingRegistrations}회`;
             } else {
                 inputArea.classList.add('hidden');
                 if (canRegister && remainingRegistrations <= 0) {
-                    document.getElementById('hof-registration-info').textContent = '등록 기회를 모두 사용했습니다.';
+                    document.getElementById('hof-registration-info').textContent = '모든 클리어에 대한 등록을 완료했습니다.';
                 }
             }
 
@@ -1304,13 +1306,15 @@
                 return;
             }
 
-            // 남은 등록 기회 확인
+            // 남은 등록 기회 확인 (한번 클리어당 한번 등록)
             const trueEndingCount = parseInt(localStorage.getItem('korean_history_true_ending_count') || '0');
             const registeredCount = parseInt(localStorage.getItem('korean_history_hof_registered_count') || '0');
             const remainingRegistrations = trueEndingCount - registeredCount;
 
+            console.log(`등록 확인 - 클리어 횟수: ${trueEndingCount}, 등록 횟수: ${registeredCount}, 남은 기회: ${remainingRegistrations}`);
+
             if (remainingRegistrations <= 0) {
-                alert("등록 기회를 모두 사용했습니다.");
+                alert("등록 기회를 모두 사용했습니다. 새로운 트루엔딩을 클리어해야 등록할 수 있습니다.");
                 return;
             }
 
@@ -1376,15 +1380,29 @@
             })
             .then(data => {
                 console.log('GAS 데이터:', data); // 디버깅용
-                // data는 이름 배열이어야 함
-                if (Array.isArray(data)) {
-                    hofNames = data;
-                    document.getElementById('hof-count').textContent = hofNames.length;
-                    drawTaegeukgiCloud();
+                console.log('데이터 타입:', typeof data, Array.isArray(data));
+
+                // data는 객체 배열이어야 함 [{date: "...", name: "..."}, ...]
+                if (Array.isArray(data) && data.length > 0) {
+                    // 첫 번째 요소가 객체인지 확인
+                    if (typeof data[0] === 'object' && data[0].date && data[0].name) {
+                        console.log('객체 배열 형식으로 데이터 수신됨');
+                        hofNames = data;
+                    } else if (typeof data[0] === 'string') {
+                        console.log('문자열 배열 형식으로 데이터 수신됨 - 레거시 데이터');
+                        // 레거시 데이터인 경우 객체로 변환 (날짜 정보 없음)
+                        hofNames = data.map(name => ({ name: name, date: null }));
+                    } else {
+                        console.error('알 수 없는 데이터 형식:', data[0]);
+                        hofNames = [];
+                    }
                 } else {
-                    console.error('데이터 형식이 배열이 아닙니다:', data);
-                    drawTaegeukgiCloud();
+                    console.log('데이터가 비어있음');
+                    hofNames = [];
                 }
+
+                document.getElementById('hof-count').textContent = hofNames.length;
+                drawTaegeukgiCloud();
                 loading.classList.add('hidden');
             })
             .catch(err => {
@@ -1461,20 +1479,34 @@
 
                 if (typeof entry === 'object' && entry.date) {
                     try {
-                        const entryDate = new Date(entry.date);
+                        // UTC 시간을 한국 시간으로 변환
+                        const utcDate = new Date(entry.date);
+                        const koreaDate = new Date(utcDate.getTime() + (9 * 60 * 60 * 1000)); // UTC+9
                         const now = new Date();
-                        const diffMs = now - entryDate;
+                        const koreaNow = new Date(now.getTime() + (9 * 60 * 60 * 1000)); // 현재 시간도 한국 시간으로
 
-                        console.log(`이름: ${name}, 등록시간: ${entryDate}, 경과시간: ${diffMs}ms`); // 디버깅용
+                        const diffMs = koreaNow - koreaDate;
+                        const diffHours = diffMs / (1000 * 60 * 60);
 
-                        // 1시간 이내 (60 * 60 * 1000ms = 3,600,000ms)
-                        if (diffMs < 3600000 && diffMs >= 0) {
+                        console.log(`이름: ${name}`);
+                        console.log(`  등록시간 (UTC): ${utcDate.toISOString()}`);
+                        console.log(`  등록시간 (한국): ${koreaDate.toLocaleString('ko-KR')}`);
+                        console.log(`  현재시간 (한국): ${koreaNow.toLocaleString('ko-KR')}`);
+                        console.log(`  경과시간: ${diffHours.toFixed(2)}시간`);
+
+                        // 1시간 이내 (1시간 = 60분)
+                        if (diffHours < 1 && diffHours >= 0) {
                             isRecent = true;
-                            console.log(`${name}는 최근 등록자입니다!`);
+                            console.log(`✅ ${name}는 최근 등록자입니다! (별 표시 적용)`);
+                        } else {
+                            console.log(`❌ ${name}는 1시간이 지났습니다. (일반 표시)`);
                         }
                     } catch (dateError) {
                         console.error('날짜 파싱 오류:', dateError, entry.date);
                     }
+                } else if (typeof entry === 'string') {
+                    // 레거시 데이터 (이름만 있는 경우)
+                    console.log(`레거시 데이터: ${name} (날짜 정보 없음)`);
                 }
 
                 let fontSize = baseFontSize * (0.8 + Math.random() * 0.6);
