@@ -1176,7 +1176,7 @@
     </div>
 
     <div class="text-xs text-stone-400 opacity-70 mt-2 font-sans select-none">
-        역사의 선택: 광복을 향해서 made by gamtudyssam 0.02
+        역사의 선택: 광복을 향해서 made by gamtudyssam 0.021
 
     <script>
         // 칭호 데이터
@@ -1305,6 +1305,8 @@
             lockBodyScroll(false);
         }
 
+        let isSubmittingHof = false;
+
         function submitHofName() {
             if (!GAS_SCRIPT_URL) {
                 alert("개발자 설정: Google Apps Script URL이 설정되지 않았습니다.");
@@ -1335,6 +1337,9 @@
                 return;
             }
 
+            if (isSubmittingHof) return;
+            isSubmittingHof = true;
+
             // 등록 요청
             showToast("이름을 등록 중입니다...");
 
@@ -1358,6 +1363,9 @@
             .catch(err => {
                 console.error(err);
                 alert("서버 연결 오류가 발생했습니다.");
+            })
+            .finally(() => {
+                isSubmittingHof = false;
             });
         }
 
@@ -3736,6 +3744,11 @@
         // --- 흥선대원군 척화비 미니게임 (Qix 스타일) ---
         function startHeungGame() {
             stopHeungGame();
+            
+            // 이전 게임의 잔여 이양선(움직이지 않는 배) 제거
+            const oldShips = document.querySelectorAll('.heung-ship');
+            oldShips.forEach(el => el.remove());
+
             hgActive = true;
             hgLives = 3;
             hgPlayer = { r: HG_SQ_START_R, c: Math.floor(HG_SQ_START_C + HG_SIDE / 2), dir: null, drawing: false };
