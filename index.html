@@ -1176,7 +1176,7 @@
     </div>
 
     <div class="text-xs text-stone-400 opacity-70 mt-2 font-sans select-none">
-        역사의 선택: 광복을 향해서 made by gamtudyssam 0.022
+        역사의 선택: 광복을 향해서 made by gamtudyssam 0.023
 
     <script>
         // 칭호 데이터
@@ -4203,24 +4203,35 @@
         function checkHeungPlayerCollision() {
             // 선을 그리기 전(안전지대)에는 목숨 감소 없음
             if (!hgPlayer.drawing) return;
-            const pRect = document.getElementById('heung-player').getBoundingClientRect();
+            const pEl = document.getElementById('heung-player');
+            const pRect = pEl.getBoundingClientRect();
+            
             for (const ship of hgShips) {
                 const sRect = ship.el.getBoundingClientRect();
-                // 히트박스를 더 줄여 오검출 방지
-                const inset = 18;
+                
+                // 히트박스를 상대적 크기로 계산 (각 크기의 25% 안쪽으로 들여서 판정)
+                // 이렇게 하면 이미지의 여백 등을 고려하여 "살짝 닿은 것"은 봐주게 됨
+                const pInsetX = pRect.width * 0.25;
+                const pInsetY = pRect.height * 0.25;
+                const sInsetX = sRect.width * 0.25;
+                const sInsetY = sRect.height * 0.25;
+
                 const p = {
-                    left: pRect.left + inset,
-                    right: pRect.right - inset,
-                    top: pRect.top + inset,
-                    bottom: pRect.bottom - inset
+                    left: pRect.left + pInsetX,
+                    right: pRect.right - pInsetX,
+                    top: pRect.top + pInsetY,
+                    bottom: pRect.bottom - pInsetY
                 };
                 const s = {
-                    left: sRect.left + inset,
-                    right: sRect.right - inset,
-                    top: sRect.top + inset,
-                    bottom: sRect.bottom - inset
+                    left: sRect.left + sInsetX,
+                    right: sRect.right - sInsetX,
+                    top: sRect.top + sInsetY,
+                    bottom: sRect.bottom - sInsetY
                 };
+                
+                // 겹침 판정
                 const overlap = !(p.right < s.left || p.left > s.right || p.bottom < s.top || p.top > s.bottom);
+                
                 if (overlap) {
                     loseHeungLife();
                     return;
