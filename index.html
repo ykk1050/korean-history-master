@@ -1176,7 +1176,7 @@
     </div>
 
     <div class="text-xs text-stone-400 opacity-70 mt-2 font-sans select-none">
-        역사의 선택: 광복을 향해서 made by gamtudyssam 0.021
+        역사의 선택: 광복을 향해서 made by gamtudyssam 0.022
 
     <script>
         // 칭호 데이터
@@ -1478,11 +1478,19 @@
             ctx.drawImage(mapCanvas, 0, 0);
             ctx.globalAlpha = 1.0; // 복구
 
-            if (hofNames.length === 0) return;
+            // 데이터가 없으면 안내 문구 표시
+            if (!hofNames || hofNames.length === 0) {
+                ctx.fillStyle = "#888";
+                ctx.font = "bold 20px 'Nanum Myeongjo', serif";
+                ctx.textAlign = "center";
+                ctx.textBaseline = "middle";
+                ctx.fillText("등록된 이름이 없습니다.", flagW / 2, flagH / 2);
+                return;
+            }
 
             // 4. 이름 배치
             // 이름이 적을 땐 크게, 많을 땐 작게
-            const baseFontSize = Math.max(10, Math.min(32, Math.sqrt((flagW * flagH) / (hofNames.length * 20))));
+            const baseFontSize = Math.max(12, Math.min(32, Math.sqrt((flagW * flagH) / (hofNames.length * 25))));
             
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
@@ -1491,7 +1499,7 @@
             const shuffled = [...hofNames].sort(() => Math.random() - 0.5);
             
             let placedCount = 0;
-            const maxTries = 100; // 시도 횟수 증가
+            const maxTries = 200; // 시도 횟수 증가
 
             shuffled.forEach(entry => {
                 // 데이터 형식 대응 (문자열 또는 객체)
@@ -1500,72 +1508,76 @@
 
                 if (typeof entry === 'object' && entry.date) {
                     try {
-                        // UTC 시간을 한국 시간으로 변환
                         const utcDate = new Date(entry.date);
-                        const koreaDate = new Date(utcDate.getTime() + (9 * 60 * 60 * 1000)); // UTC+9
                         const now = new Date();
-                        const koreaNow = new Date(now.getTime() + (9 * 60 * 60 * 1000)); // 현재 시간도 한국 시간으로
-
-                        const diffMs = koreaNow - koreaDate;
+                        const diffMs = now.getTime() - utcDate.getTime(); 
                         const diffHours = diffMs / (1000 * 60 * 60);
 
-                        console.log(`이름: ${name}`);
-                        console.log(`  등록시간 (UTC): ${utcDate.toISOString()}`);
-                        console.log(`  등록시간 (한국): ${koreaDate.toLocaleString('ko-KR')}`);
-                        console.log(`  현재시간 (한국): ${koreaNow.toLocaleString('ko-KR')}`);
-                        console.log(`  경과시간: ${diffHours.toFixed(2)}시간`);
-
-                        // 1시간 이내 (1시간 = 60분)
+                        // 1시간 이내
                         if (diffHours < 1 && diffHours >= 0) {
                             isRecent = true;
-                            console.log(`✅ ${name}는 최근 등록자입니다! (별 표시 적용)`);
-                        } else {
-                            console.log(`❌ ${name}는 1시간이 지났습니다. (일반 표시)`);
                         }
                     } catch (dateError) {
-                        console.error('날짜 파싱 오류:', dateError, entry.date);
+                        console.error('날짜 파싱 오류:', dateError);
                     }
-                } else if (typeof entry === 'string') {
-                    // 레거시 데이터 (이름만 있는 경우)
-                    console.log(`레거시 데이터: ${name} (날짜 정보 없음)`);
                 }
 
                 let fontSize = baseFontSize * (0.8 + Math.random() * 0.6);
                 ctx.font = `bold ${fontSize}px "Nanum Myeongjo", serif`; 
                 
+                // 텍스트 너비 측정 (클리핑 방지용)
+                const textMetrics = ctx.measureText(name + (isRecent ? "✨" : ""));
+                const textHalfW = textMetrics.width / 2;
+                const textHalfH = fontSize / 2;
+
+                // 화면 가장자리 여백
+                const padding = 10;
+                const minX = textHalfW + padding;
+                const maxX = flagW - textHalfW - padding;
+                const minY = textHalfH + padding;
+                const maxY = flagH - textHalfH - padding;
+
+                if (minX > maxX || minY > maxY) return; // 그릴 공간 부족 시 스킵
+
                 let placed = false;
                 for (let i = 0; i < maxTries; i++) {
-                    const x = Math.floor(Math.random() * flagW);
-                    const y = Math.floor(Math.random() * flagH);
+                    const x = minX + Math.random() * (maxX - minX);
+                    const y = minY + Math.random() * (maxY - minY);
                     
-                    // 맵에서 색상 샘플링
-                    const index = (y * flagW + x) * 4;
+                    // 맵에서 색상 샘플링 (정수 좌표)
+                    const mapX = Math.floor(x);
+                    const mapY = Math.floor(y);
+                    const index = (mapY * flagW + mapX) * 4;
+                    
+                    if (index < 0 || index >= mapData.length) continue;
+
                     const r = mapData[index];
                     const g = mapData[index + 1];
                     const b = mapData[index + 2];
                     const a = mapData[index + 3];
 
-                    // 흰색 배경이 아닌 유색 영역(태극/건곤감리) 찾기
+                    // 흰색 배경이 아닌 유색 영역(태극/건곤감리) 찾기 (a > 100 && r + g + b < 760)
                     if (a > 100 && r + g + b < 760) { 
-                        // 색상 결정
-                        let fillStyle = '#000';
-                        if (r > 200 && b < 100) fillStyle = '#CD2E3A'; // Red
-                        else if (b > 150 && r < 100) fillStyle = '#0047A0'; // Blue
-                        else if (r < 50 && g < 50 && b < 50) fillStyle = '#111111'; // Black
+                        // 색상 결정 (배경색과 글자색 일치)
+                        let fillStyle = '#000000';
+                        
+                        if (r > 200 && b < 100) fillStyle = '#CD2E3A'; // Red 영역 -> Red 글씨
+                        else if (b > 150 && r < 100) fillStyle = '#0047A0'; // Blue 영역 -> Blue 글씨
+                        else if (r < 60 && g < 60 && b < 60) fillStyle = '#000000'; // Black 영역 -> Black 글씨
                         
                         ctx.fillStyle = fillStyle;
                         ctx.save();
                         ctx.translate(x, y);
                         // 약간의 회전
-                        ctx.rotate((Math.random() - 0.5) * 0.5);
+                        ctx.rotate((Math.random() - 0.5) * 0.4);
                         
-                        // 최근 등록자 효과: 그림자(광채) + 별
+                        // 효과 적용
                         if (isRecent) {
-                            ctx.shadowColor = "#FFD700"; // Gold color
-                            ctx.shadowBlur = 10;
-                            // 이름 뒤에 별 추가
+                            ctx.shadowColor = "#FFD700"; // Gold
+                            ctx.shadowBlur = 5;
                             ctx.fillText(name + "✨", 0, 0);
                         } else {
+                            ctx.shadowBlur = 0; // 일반 텍스트는 깔끔하게
                             ctx.fillText(name, 0, 0);
                         }
                         
