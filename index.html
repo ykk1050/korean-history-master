@@ -1176,7 +1176,7 @@
     </div>
 
     <div class="text-xs text-stone-400 opacity-70 mt-2 font-sans select-none">
-        역사의 선택: 광복을 향해서 made by gamtudyssam 0.024
+        역사의 선택: 광복을 향해서 made by gamtudyssam 0.025
 
     <script>
         // 칭호 데이터
@@ -1684,8 +1684,10 @@
         }
 
         function formatScore(score, type) {
-            if (type === 'time_low' || type === 'time_high') {
+            if (type === 'time_low') {
                 return `${(score / 1000).toFixed(2)}초`;
+            } else if (type === 'time_high') {
+                return `${score.toFixed(1)}초`;
             }
             return `${score}점`;
         }
