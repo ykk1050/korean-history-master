@@ -783,8 +783,8 @@
         <div class="absolute top-4 left-4 bg-black/60 text-white p-4 rounded-lg z-10 border border-white/30 backdrop-blur-sm">
             <div id="mg-title-text" class="text-3xl font-bold mb-2 text-yellow-400 select-none cursor-pointer">인내심: <span id="mg-score">0</span> / 100</div>
             <div class="text-sm text-gray-200">
-                <span class="text-green-400 font-bold">● 쑥 & 마늘: +2점</span><br>
-                <span class="text-red-400 font-bold">● 고기 & 벼: -2점</span>
+                <span class="text-green-400 font-bold">● 쑥 & 마늘: +4점</span><br>
+                <span class="text-red-400 font-bold">● 고기 & 벼: -4점</span>
             </div>
         </div>
         
@@ -1176,7 +1176,7 @@
     </div>
 
     <div class="text-xs text-stone-400 opacity-70 mt-2 font-sans select-none">
-        역사의 선택: 광복을 향해서 made by gamtudyssam 0.026
+        역사의 선택: 광복을 향해서 made by gamtudyssam 0.028
 
     <script>
         // 칭호 데이터
@@ -1283,12 +1283,31 @@
         const GAS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyaYoAcgAs_4aALXFiJBXPV6Q6dCfvsW-Uzel1-wPixOLWCqdASXtlmXfucJrbzVW_b/exec"; 
 
         // --- 명예의 전당 (태극기 워드클라우드) ---
-        function openHofModal(canRegister = false) {
+        function openHofModal(canRegister = false, isIntro = false) {
             const modal = document.getElementById('hof-modal');
             const inputArea = document.getElementById('hof-input-area');
-
+            const introText = document.getElementById('hof-intro-text');
+            
             modal.classList.remove('hidden');
             lockBodyScroll(true);
+
+            // 인트로 텍스트 처리
+            if (introText) {
+                if (isIntro) {
+                    introText.classList.remove('hidden');
+                    introText.textContent = "광복을 향하여 올바른 선택을 하여 태극기에 나의 이름을 채워주세요. 창을 닫으면 광복을 위한 선택이 시작됩니다.";
+                } else {
+                    introText.classList.add('hidden');
+                }
+            } else if (isIntro) {
+                // 동적으로 요소 생성 (없을 경우)
+                const p = document.createElement('p');
+                p.id = 'hof-intro-text';
+                p.className = "text-center text-amber-600 font-bold mb-4 text-lg animate-pulse";
+                p.textContent = "광복을 향하여 올바른 선택을 하여 태극기에 나의 이름을 채워주세요. 창을 닫으면 광복을 위한 선택이 시작됩니다.";
+                const target = document.querySelector('#hof-modal h2');
+                target.parentNode.insertBefore(p, target.nextSibling);
+            }
 
             // 트루엔딩 클리어 횟수와 등록 횟수로 남은 등록 기회 계산
             const trueEndingCount = parseInt(localStorage.getItem('korean_history_true_ending_count') || '0');
@@ -5382,7 +5401,7 @@
             const clickHandler = (e) => {
                 if (!mgActive) return;
                 
-                const change = itemData.type === 'good' ? 2 : -2;
+                const change = itemData.type === 'good' ? 4 : -4;
                 updateScore(change);
                 showScorePopup(e.clientX, e.clientY, change);
                 img.remove();
@@ -5425,7 +5444,7 @@
         function showScorePopup(x, y, change) {
             const popup = document.createElement('div');
             popup.className = 'score-popup';
-            popup.textContent = change > 0 ? "+2" : "-2";
+            popup.textContent = change > 0 ? "+4" : "-4";
             popup.style.color = change > 0 ? "#4ade80" : "#ef4444";
             popup.style.left = `${x}px`;
             popup.style.top = `${y}px`;
@@ -5470,6 +5489,12 @@
             
             // 기존 초기화 로직
             startGame();
+            
+            // 처음 방문 시 명예의 전당 보여주기
+            if (!sessionStorage.getItem('visited_hof')) {
+                openHofModal(false, true); // 두 번째 인자는 intro 모드 여부
+                sessionStorage.setItem('visited_hof', 'true');
+            }
         });
 
         function startGame() {
